@@ -12,6 +12,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Admin Dashboard</title>
     <style>
         * {
@@ -92,35 +93,17 @@
         }
 
         .menu-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #3498db;
             padding: 25px;
             border-radius: 5px;
             color: white;
             text-decoration: none;
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: background 0.3s;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border-left: 5px solid white;
-        }
-
-        .menu-card:nth-child(2) {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-
-        .menu-card:nth-child(3) {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-
-        .menu-card:nth-child(4) {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        }
-
-        .menu-card:nth-child(5) {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
         }
 
         .menu-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background: #2980b9;
         }
 
         .menu-card h3 {
@@ -131,7 +114,7 @@
 
         .menu-card p {
             font-size: 13px;
-            opacity: 0.9;
+            opacity: 0.95;
         }
 
         footer {
@@ -154,7 +137,6 @@
 
     <nav>
         <a href="adminDashboard.jsp">Dashboard</a>
-        <a href="addStudent.jsp">Add Student</a>
         <a href="viewStudents.jsp">View Students</a>
         <a href="logout.jsp">Logout</a>
     </nav>
@@ -163,28 +145,13 @@
         <div class="dashboard-title">Welcome, Admin!</div>
 
         <div class="menu-grid">
-            <a href="addStudent.jsp" class="menu-card">
-                <h3>➕ Add Student</h3>
-                <p>Register a new student in the system</p>
-            </a>
-
             <a href="viewStudents.jsp" class="menu-card">
-                <h3>👥 View Students</h3>
+                <h3>View Students</h3>
                 <p>View, edit, and delete student records</p>
             </a>
 
-            <a href="marksEntry.jsp" class="menu-card">
-                <h3>📝 Manage Marks</h3>
-                <p>View and manage student marks</p>
-            </a>
-
-            <a href="attendance.jsp" class="menu-card">
-                <h3>📋 Manage Attendance</h3>
-                <p>View and manage attendance records</p>
-            </a>
-
             <a href="logout.jsp" class="menu-card">
-                <h3>🚪 Logout</h3>
+                <h3>Logout</h3>
                 <p>Exit from the system securely</p>
             </a>
         </div>

@@ -12,7 +12,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Marks</title>
+    <meta charset="UTF-8">
+    <title>My Marks - Student Management System</title>
     <style>
         * {
             margin: 0;
@@ -138,6 +139,11 @@
             margin-bottom: 20px;
         }
 
+        .mark-pending {
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
         footer {
             text-align: center;
             padding: 20px;
@@ -172,44 +178,53 @@
                 if(sid == null || sid == 0) {
                     out.println("<div class='error-msg'>Error: Could not retrieve student ID from session.</div>");
                 } else {
-                    PreparedStatement ps = con.prepareStatement("SELECT * FROM marks WHERE student_id=? ORDER BY mark_id DESC");
+                    // Default subjects for all students
+                    String[] defaultSubjects = {"Advanced Java", "DBMS", "AI", "ReactJS", "Research Methodology", "German Language"};
+                    
+                    // Get marks for this student
+                    PreparedStatement ps = con.prepareStatement("SELECT subject, marks FROM marks WHERE student_id=?");
                     ps.setInt(1, sid);
                     ResultSet rs = ps.executeQuery();
-
-                    if(!rs.isBeforeFirst()) {
-        %>
-                        <div class="no-data">No marks records found. Please contact your teacher.</div>
-        <%
-                    } else {
-        %>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Subject</th>
-                                    <th>Marks</th>
-                                    <th>Percentage</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-        <%
-                        while(rs.next()) {
-                            int marks = rs.getInt("marks");
-                            double percentage = (marks / 100.0) * 100;
-        %>
-                                <tr>
-                                    <td><%= rs.getString("subject") %></td>
-                                    <td><%= marks %>/100</td>
-                                    <td><%= String.format("%.2f", percentage) %>%</td>
-                                </tr>
-        <%
-                        }
-        %>
-                            </tbody>
-                        </table>
-        <%
+                    
+                    java.util.HashMap<String, Integer> marksMap = new java.util.HashMap<>();
+                    while(rs.next()) {
+                        marksMap.put(rs.getString("subject"), rs.getInt("marks"));
                     }
                     rs.close();
                     ps.close();
+        %>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Marks</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        <%
+                    for(String subject : defaultSubjects) {
+                        if(marksMap.containsKey(subject)) {
+                            int marks = marksMap.get(subject);
+                            double percentage = marks;
+        %>
+                            <tr>
+                                <td><%= subject %></td>
+                                <td><%= marks %>/100</td>
+                                <td><%= percentage %>%</td>
+                            </tr>
+        <%
+                        } else {
+        %>
+                            <tr>
+                                <td><%= subject %></td>
+                                <td class="mark-pending">Pending</td>
+                                <td class="mark-pending">-</td>
+                            </tr>
+        <%
+                        }
+                    }
+                    }
                 }
             } catch(Exception e) {
                 out.println("<div class='error-msg'>Error: " + e.getMessage() + "</div>");

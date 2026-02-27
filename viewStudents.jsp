@@ -12,7 +12,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>View Students</title>
+    <meta charset="UTF-8">
+    <title>View Students - Student Management System</title>
     <style>
         * {
             margin: 0;

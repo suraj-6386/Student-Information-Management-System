@@ -12,7 +12,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Add Student</title>
+    <meta charset="UTF-8">
+    <title>Add Student - Student Management System</title>
     <style>
         * {
             margin: 0;

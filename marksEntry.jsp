@@ -12,7 +12,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Enter Marks</title>
+    <meta charset="UTF-8">
+    <title>Enter Marks - Student Management System</title>
     <style>
         * {
             margin: 0;
@@ -261,11 +262,12 @@
                 <label for="subject">Subject *</label>
                 <select id="subject" name="subject" required>
                     <option value="">-- Select Subject --</option>
-                    <option value="Mathematics">Mathematics</option>
-                    <option value="English">English</option>
-                    <option value="Science">Science</option>
-                    <option value="History">History</option>
-                    <option value="Geography">Geography</option>
+                    <option value="Advanced Java">Advanced Java</option>
+                    <option value="DBMS">DBMS</option>
+                    <option value="AI">AI</option>
+                    <option value="ReactJS">ReactJS</option>
+                    <option value="Research Methodology">Research Methodology</option>
+                    <option value="German Language">German Language</option>
                 </select>
             </div>
 

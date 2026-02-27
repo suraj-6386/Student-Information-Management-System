@@ -12,7 +12,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Edit Student</title>
+    <meta charset="UTF-8">
+    <title>Edit Student - Student Management System</title>
     <style>
         * {
             margin: 0;

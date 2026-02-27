@@ -12,7 +12,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Profile</title>
+    <meta charset="UTF-8">
+    <title>My Profile - Student Management System</title>
     <style>
         * {
             margin: 0;

@@ -12,7 +12,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Attendance</title>
+    <meta charset="UTF-8">
+    <title>My Attendance - Student Management System</title>
     <style>
         * {
             margin: 0;
@@ -120,18 +121,10 @@
             font-weight: 600;
         }
 
-        .status-leave {
-            background: #fef5e7;
-            color: #f39c12;
-            padding: 4px 8px;
-            border-radius: 3px;
+        .subject-header {
+            background: #ecf0f1;
             font-weight: 600;
-        }
-
-        .no-data {
-            text-align: center;
-            padding: 40px;
-            color: #7f8c8d;
+            color: #2c3e50;
         }
 
         .back-link {
@@ -196,13 +189,30 @@
                 if(sid == null || sid == 0) {
                     out.println("<div class='error-msg'>Error: Could not retrieve student ID from session.</div>");
                 } else {
-                    PreparedStatement ps = con.prepareStatement("SELECT * FROM attendance WHERE student_id=? ORDER BY date DESC");
+                    // Default subjects for all students
+                    String[] defaultSubjects = {"Advanced Java", "DBMS", "AI", "ReactJS", "Research Methodology", "German Language"};
+                    
+                    // Get all attendance for this student
+                    PreparedStatement ps = con.prepareStatement("SELECT date, subject, status FROM attendance WHERE student_id=? ORDER BY date DESC");
                     ps.setInt(1, sid);
                     ResultSet rs = ps.executeQuery();
-
-                    if(!rs.isBeforeFirst()) {
+                    
+                    java.util.HashMap<String, java.util.ArrayList<Object[]>> attendanceBySubject = new java.util.HashMap<>();
+                    
+                    while(rs.next()) {
+                        String subject = rs.getString("subject");
+                        if(!attendanceBySubject.containsKey(subject)) {
+                            attendanceBySubject.put(subject, new java.util.ArrayList<Object[]>());
+                        }
+                        Object[] record = {rs.getString("date"), rs.getString("status")};
+                        attendanceBySubject.get(subject).add(record);
+                    }
+                    rs.close();
+                    ps.close();
+                    
+                    if(attendanceBySubject.isEmpty()) {
         %>
-                        <div class="no-data">No attendance records found.</div>
+                        <div class="no-data">No attendance records found yet.</div>
         <%
                     } else {
         %>
@@ -210,35 +220,30 @@
                             <thead>
                                 <tr>
                                     <th>Date</th>
+                                    <th>Subject</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
         <%
-                        while(rs.next()) {
-                            String status = rs.getString("status");
-                            String statusClass = "";
-                            if("Present".equals(status)) {
-                                statusClass = "status-present";
-                            } else if("Absent".equals(status)) {
-                                statusClass = "status-absent";
-                            } else if("Leave".equals(status)) {
-                                statusClass = "status-leave";
-                            }
+                        for(String subject : defaultSubjects) {
+                            if(attendanceBySubject.containsKey(subject)) {
+                                for(Object[] record : attendanceBySubject.get(subject)) {
+                                    String date = (String)record[0];
+                                    String status = (String)record[1];
+                                    String statusClass = status.equals("Present") ? "status-present" : "status-absent";
         %>
                                 <tr>
-                                    <td><%= rs.getString("date") %></td>
+                                    <td><%= date %></td>
+                                    <td><%= subject %></td>
                                     <td><span class="<%= statusClass %>"><%= status %></span></td>
                                 </tr>
         <%
+                                }
+                            }
                         }
-        %>
-                            </tbody>
-                        </table>
-        <%
                     }
-                    rs.close();
-                    ps.close();
+                    }
                 }
             } catch(Exception e) {
                 out.println("<div class='error-msg'>Error: " + e.getMessage() + "</div>");

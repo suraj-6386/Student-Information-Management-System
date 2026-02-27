@@ -12,7 +12,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Update Attendance</title>
+    <meta charset="UTF-8">
+    <title>Update Attendance - Student Management System</title>
     <style>
         * {
             margin: 0;
@@ -198,11 +199,12 @@
             if(request.getMethod().equals("POST")) {
                 try {
                     String sid = request.getParameter("sid");
+                    String subject = request.getParameter("subject");
                     String date = request.getParameter("date");
                     String status = request.getParameter("status");
 
-                    if(sid == null || sid.trim().isEmpty() || date == null || 
-                       date.trim().isEmpty() || status == null || status.trim().isEmpty()) {
+                    if(sid == null || sid.trim().isEmpty() || subject == null || subject.trim().isEmpty() || 
+                       date == null || date.trim().isEmpty() || status == null || status.trim().isEmpty()) {
                         message = "All fields are required!";
                         messageType = "error";
                     } else {
@@ -218,11 +220,12 @@
                             messageType = "error";
                         } else {
                             PreparedStatement ps = con.prepareStatement(
-                                "INSERT INTO attendance(student_id, date, status) VALUES(?, ?, ?)"
+                                "INSERT INTO attendance(student_id, subject, date, status) VALUES(?, ?, ?, ?)"
                             );
                             ps.setInt(1, studentId);
-                            ps.setString(2, date);
-                            ps.setString(3, status);
+                            ps.setString(2, subject);
+                            ps.setString(3, date);
+                            ps.setString(4, status);
                             ps.executeUpdate();
                             ps.close();
                             message = "✓ Attendance recorded successfully!";
@@ -252,6 +255,19 @@
             </div>
 
             <div class="form-group">
+                <label for="subject">Subject *</label>
+                <select id="subject" name="subject" required>
+                    <option value="">-- Select Subject --</option>
+                    <option value="Advanced Java">Advanced Java</option>
+                    <option value="DBMS">DBMS</option>
+                    <option value="AI">AI</option>
+                    <option value="ReactJS">ReactJS</option>
+                    <option value="Research Methodology">Research Methodology</option>
+                    <option value="German Language">German Language</option>
+                </select>
+            </div>
+
+            <div class="form-group">
                 <label for="date">Date *</label>
                 <input type="date" id="date" name="date" required>
             </div>
@@ -262,7 +278,6 @@
                     <option value="">-- Select Status --</option>
                     <option value="Present">Present</option>
                     <option value="Absent">Absent</option>
-                    <option value="Leave">Leave</option>
                 </select>
             </div>
 

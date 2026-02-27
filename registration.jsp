@@ -3,6 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Register - Student Management System</title>
     <style>
         * {
@@ -231,6 +232,43 @@
                                     loginPs.setInt(4, studentId);
                                     loginPs.executeUpdate();
                                     loginPs.close();
+
+                                    // Auto-create marks records for all 6 default subjects
+                                    String[] defaultSubjects = {"Advanced Java", "DBMS", "AI", "ReactJS", "Research Methodology", "German Language"};
+                                    
+                                    // Get subject IDs from subjects table
+                                    PreparedStatement subjectPs = con.prepareStatement("SELECT subject_id FROM subjects ORDER BY subject_id ASC");
+                                    ResultSet subjectRs = subjectPs.executeQuery();
+                                    java.util.ArrayList<Integer> subjectIds = new java.util.ArrayList<>();
+                                    while(subjectRs.next()) {
+                                        subjectIds.add(subjectRs.getInt("subject_id"));
+                                    }
+                                    subjectRs.close();
+                                    subjectPs.close();
+                                    
+                                    // Insert marks with subject_id for each subject
+                                    PreparedStatement marksPs = con.prepareStatement(
+                                        "INSERT INTO marks (student_id, subject_id, subject, marks) VALUES (?, ?, ?, 0)"
+                                    );
+                                    for(int i = 0; i < defaultSubjects.length && i < subjectIds.size(); i++) {
+                                        marksPs.setInt(1, studentId);
+                                        marksPs.setInt(2, subjectIds.get(i));
+                                        marksPs.setString(3, defaultSubjects[i]);
+                                        marksPs.executeUpdate();
+                                    }
+                                    marksPs.close();
+
+                                    // Auto-create attendance records for all 6 default subjects
+                                    PreparedStatement attendancePs = con.prepareStatement(
+                                        "INSERT INTO attendance (student_id, subject_id, subject, date, status) VALUES (?, ?, ?, CURDATE(), 'Present')"
+                                    );
+                                    for(int i = 0; i < defaultSubjects.length && i < subjectIds.size(); i++) {
+                                        attendancePs.setInt(1, studentId);
+                                        attendancePs.setInt(2, subjectIds.get(i));
+                                        attendancePs.setString(3, defaultSubjects[i]);
+                                        attendancePs.executeUpdate();
+                                    }
+                                    attendancePs.close();
 
                                     successMsg = "✓ Student registration successful! You can now login.";
                                     studentPs.close();
