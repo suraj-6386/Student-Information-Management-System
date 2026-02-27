@@ -1,0 +1,172 @@
+=====================================
+DATABASE SETUP FOR STUDENT MANAGEMENT SYSTEM
+=====================================
+
+Execute all queries in the following order in MySQL Workbench:
+
+=====================================
+STEP 1: CREATE DATABASE
+=====================================
+
+CREATE DATABASE IF NOT EXISTS student_management;
+USE student_management;
+
+=====================================
+STEP 2: CREATE TABLES
+=====================================
+
+-- Login Table (for authentication)
+CREATE TABLE login (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(50) NOT NULL,
+    role VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Students Table
+CREATE TABLE students (
+    student_id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    course VARCHAR(50) NOT NULL,
+    semester VARCHAR(20) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    phone VARCHAR(15) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Teachers Table
+CREATE TABLE teachers (
+    teacher_id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    subject VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    phone VARCHAR(15),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Marks Table (Student marks records)
+CREATE TABLE marks (
+    mark_id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT NOT NULL,
+    subject VARCHAR(50) NOT NULL,
+    marks INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
+);
+
+-- Attendance Table (Student attendance records)
+CREATE TABLE attendance (
+    attendance_id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT NOT NULL,
+    date DATE NOT NULL,
+    status VARCHAR(10) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
+);
+
+=====================================
+STEP 3: INSERT SAMPLE DATA
+=====================================
+
+-- Insert Login Credentials
+INSERT INTO login (username, password, role) VALUES
+('admin', 'admin123', 'admin'),
+('teacher', 'teacher123', 'teacher'),
+('student', 'student123', 'student');
+
+-- Insert Sample Students
+INSERT INTO students (name, course, semester, email, phone) VALUES
+('Raj Kumar', 'B.Tech', '2', 'raj@college.edu', '9876543210'),
+('Priya Singh', 'BCA', '2', 'priya@college.edu', '9876543211'),
+('Vikram Patel', 'B.Tech', '2', 'vikram@college.edu', '9876543212'),
+('Anjali Verma', 'MCA', '2', 'anjali@college.edu', '9876543213'),
+('Rohan Gupta', 'B.Sc', '2', 'rohan@college.edu', '9876543214');
+
+-- Insert Sample Teachers
+INSERT INTO teachers (name, subject, email, phone) VALUES
+('Dr. Ramesh Kumar', 'Mathematics', 'ramesh@college.edu', '9123456789'),
+('Prof. Neha Sharma', 'English', 'neha@college.edu', '9123456790'),
+('Mr. Arvind Singh', 'Science', 'arvind@college.edu', '9123456791');
+
+-- Insert Sample Marks
+INSERT INTO marks (student_id, subject, marks) VALUES
+(1, 'Mathematics', 85),
+(1, 'English', 78),
+(1, 'Science', 88),
+(2, 'Mathematics', 92),
+(2, 'English', 86),
+(3, 'Science', 76),
+(4, 'Mathematics', 95),
+(5, 'English', 82);
+
+-- Insert Sample Attendance
+INSERT INTO attendance (student_id, date, status) VALUES
+(1, '2026-02-20', 'Present'),
+(1, '2026-02-21', 'Present'),
+(1, '2026-02-22', 'Absent'),
+(1, '2026-02-23', 'Leave'),
+(2, '2026-02-20', 'Present'),
+(2, '2026-02-21', 'Present'),
+(2, '2026-02-22', 'Present'),
+(3, '2026-02-20', 'Present'),
+(3, '2026-02-21', 'Absent'),
+(4, '2026-02-20', 'Present'),
+(5, '2026-02-21', 'Present');
+
+=====================================
+STEP 4: VERIFY TABLES AND DATA
+=====================================
+
+-- Verify all tables are created
+SHOW TABLES;
+
+-- Check login table
+SELECT * FROM login;
+
+-- Check students table
+SELECT * FROM students;
+
+-- Check marks
+SELECT * FROM marks;
+
+-- Check attendance
+SELECT * FROM attendance;
+
+=====================================
+NOTES FOR ADMINISTRATION
+=====================================
+
+1. Database Name: student_management
+2. Default MySQL User: root
+3. Default MySQL Password: 15056324
+
+4. DEFAULT LOGIN CREDENTIALS:
+   - Admin: username=admin, password=admin123
+   - Teacher: username=teacher, password=teacher123
+   - Student: username=student, password=student123
+
+5. IMPORTANT FIELDS:
+   - Login table: 'role' field determines user access level
+   - Students table: use 'student_id' for session tracking
+   - Marks table: linked to students via student_id (foreign key)
+   - Attendance table: linked to students via student_id (foreign key)
+
+6. ACCESSING THE SYSTEM:
+   - URL: http://localhost:8080/MyApps/StudentInfoManageSystem/index.html
+   - Navigate through Login page
+   - Access restricted by role
+
+7. KEY FEATURES:
+   - Admin: Add/Edit/Delete students
+   - Teacher: Enter marks and attendance
+   - Student: View own profile, marks, and attendance
+
+8. MODIFICATION GUIDE:
+   - To add more subjects: Simply enter new subjects in marks table
+   - To add more students: Use admin dashboard
+   - To modify credentials: Update login table directly in MySQL
+
+=====================================
+END OF SETUP
+=====================================
