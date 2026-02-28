@@ -202,7 +202,7 @@
                     "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                 
                 // Get total courses
-                String countSQL = "SELECT COUNT(*) as total FROM course_teacher WHERE teacher_id = ?";
+                String countSQL = "SELECT COUNT(*) as total FROM subject_teacher WHERE teacher_id = ?";
                 PreparedStatement countStmt = conn.prepareStatement(countSQL);
                 countStmt.setInt(1, teacherId);
                 ResultSet countRS = countStmt.executeQuery();
@@ -215,9 +215,9 @@
                 
                 // Get total students
                 String studentCountSQL = "SELECT COUNT(DISTINCT e.student_id) as total " +
-                                        "FROM enrollments e " +
-                                        "JOIN course_teacher ct ON e.course_id = ct.course_id " +
-                                        "WHERE ct.teacher_id = ?";
+                                        "FROM student_subject_enrollment e " +
+                                        "JOIN subject_teacher st ON e.subject_id = st.subject_id " +
+                                        "WHERE st.teacher_id = ?";
                 PreparedStatement studentStmt = conn.prepareStatement(studentCountSQL);
                 studentStmt.setInt(1, teacherId);
                 ResultSet studentRS = studentStmt.executeQuery();
@@ -232,7 +232,7 @@
         <!-- Statistics -->
         <div class="stats-container">
             <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <h3>Total Courses Assigned</h3>
+                <h3>Total Subjects Assigned</h3>
                 <div class="stat-value"><%= totalCourses %></div>
             </div>
             <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
@@ -246,45 +246,51 @@
         %>
         <div class="empty-state">
             <div class="empty-state-icon">📭</div>
-            <h3>No Courses Assigned Yet</h3>
-            <p>Contact your administrator to assign courses to your account.</p>
+            <h3>No Subjects Assigned Yet</h3>
+            <p>Contact your administrator to assign subjects to your account.</p>
         </div>
         <%
                 } else {
         %>
         
-        <!-- Courses Grid -->
+        <!-- Subjects List -->
         <div class="courses-grid">
         <%
-                    // Get all courses assigned to teacher with student count
-                    String sql = "SELECT c.course_id, c.course_code, c.course_name, c.credits, c.semester, " +
-                                "ct.assigned_date, COUNT(DISTINCT e.student_id) as student_count " +
-                                "FROM courses c " +
-                                "JOIN course_teacher ct ON c.course_id = ct.course_id " +
-                                "LEFT JOIN enrollments e ON c.course_id = e.course_id " +
-                                "WHERE ct.teacher_id = ? " +
-                                "GROUP BY c.course_id " +
-                                "ORDER BY c.semester ASC, c.course_code ASC";
+                    // Get all subjects assigned to teacher
+                    String sql = "SELECT s.subject_id, s.subject_code, s.subject_name, s.credits, s.semester, " +
+                                "c.course_name, st.assigned_date, COUNT(DISTINCT e.student_id) as student_count " +
+                                "FROM subjects s " +
+                                "JOIN subject_teacher st ON s.subject_id = st.subject_id " +
+                                "JOIN courses c ON s.course_id = c.course_id " +
+                                "LEFT JOIN student_subject_enrollment e ON s.subject_id = e.subject_id AND e.status = 'active' " +
+                                "WHERE st.teacher_id = ? " +
+                                "GROUP BY s.subject_id " +
+                                "ORDER BY c.course_name, s.semester, s.subject_code";
                     
                     PreparedStatement stmt = conn.prepareStatement(sql);
                     stmt.setInt(1, teacherId);
                     ResultSet rs = stmt.executeQuery();
                     
                     while (rs.next()) {
-                        int courseId = rs.getInt("course_id");
-                        String courseCode = rs.getString("course_code");
-                        String courseName = rs.getString("course_name");
+                        int subjectId = rs.getInt("subject_id");
+                        String subjectCode = rs.getString("subject_code");
+                        String subjectName = rs.getString("subject_name");
                         int credits = rs.getInt("credits");
                         int semester = rs.getInt("semester");
+                        String courseName = rs.getString("course_name");
                         int studentCount = rs.getInt("student_count");
                         Timestamp assignedDate = rs.getTimestamp("assigned_date");
         %>
         
         <div class="course-card">
-            <div class="course-code"><%= courseCode %></div>
-            <div class="course-name"><%= courseName %></div>
+            <div class="course-code"><%= subjectCode %></div>
+            <div class="course-name"><%= subjectName %></div>
             
             <div class="course-meta">
+                <div class="meta-item">
+                    <span class="meta-label">Degree Program:</span>
+                    <span class="meta-value"><%= courseName %></span>
+                </div>
                 <div class="meta-item">
                     <span class="meta-label">Semester:</span>
                     <span class="meta-value"><%= semester %></span>
@@ -319,7 +325,7 @@
                 <a href="teacher-marks.jsp" class="action-marks" title="Enter Marks">
                     📊 Marks
                 </a>
-                <a href="teacher-students.jsp?course_id=<%= courseId %>" class="action-students" title="View Students">
+                <a href="teacher-students.jsp?subject_id=<%= subjectId %>" class="action-students" title="View Students">
                     👥 Students
                 </a>
             </div>

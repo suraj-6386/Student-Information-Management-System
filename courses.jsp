@@ -23,11 +23,11 @@
         try {
             String courseCode = request.getParameter("course_code");
             String courseName = request.getParameter("course_name");
-            String credits = request.getParameter("credits");
-            String semester = request.getParameter("semester");
+            String durationYears = request.getParameter("duration_years");
+            String totalSemesters = request.getParameter("total_semesters");
             String teacherId = request.getParameter("teacher_id");
             
-            if (courseCode != null && courseName != null && credits != null && semester != null) {
+            if (courseCode != null && courseName != null && durationYears != null && totalSemesters != null) {
                 Class.forName("com.mysql.jdbc.Driver");
                 Connection conn = DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
@@ -43,12 +43,12 @@
                     messageType = "danger";
                 } else {
                     // Insert course
-                    String sql = "INSERT INTO courses (course_code, course_name, credits, semester) VALUES (?, ?, ?, ?)";
+                    String sql = "INSERT INTO courses (course_code, course_name, duration_years, total_semesters) VALUES (?, ?, ?, ?)";
                     PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
                     stmt.setString(1, courseCode);
                     stmt.setString(2, courseName);
-                    stmt.setInt(3, Integer.parseInt(credits));
-                    stmt.setInt(4, Integer.parseInt(semester));
+                    stmt.setInt(3, Integer.parseInt(durationYears));
+                    stmt.setInt(4, Integer.parseInt(totalSemesters));
                     
                     stmt.executeUpdate();
                     

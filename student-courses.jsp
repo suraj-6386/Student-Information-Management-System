@@ -55,7 +55,11 @@
                             Connection conn = DriverManager.getConnection(
                                 "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                             
-                            String sql = "SELECT e.course_id, c.course_code, c.course_name, c.credits, c.semester, 'Enrolled' as status FROM enrollments e JOIN courses c ON e.course_id = c.course_id WHERE e.student_id = ?";
+                            String sql = "SELECT s.subject_id, s.subject_code, s.subject_name, s.credits, s.semester, c.course_name, 'Enrolled' as status " +
+                                         "FROM student_subject_enrollment e " +
+                                         "JOIN subjects s ON e.subject_id = s.subject_id " +
+                                         "JOIN courses c ON s.course_id = c.course_id " +
+                                         "WHERE e.student_id = ?";
                             PreparedStatement stmt = conn.prepareStatement(sql);
                             stmt.setInt(1, userId);
                             ResultSet rs = stmt.executeQuery();
@@ -67,8 +71,9 @@
                             while (rs.next()) {
                     %>
                     <tr>
-                        <td><%= rs.getInt("course_id") %></td>
-                        <td><%= rs.getString("course_code") %></td>
+                        <td><%= rs.getInt("subject_id") %></td>
+                        <td><%= rs.getString("subject_code") %></td>
+                        <td><%= rs.getString("subject_name") %></td>
                         <td><%= rs.getString("course_name") %></td>
                         <td><%= rs.getInt("credits") %></td>
                         <td><%= rs.getInt("semester") %></td>

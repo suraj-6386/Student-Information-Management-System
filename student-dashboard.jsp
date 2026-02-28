@@ -27,8 +27,8 @@
         
         Statement stmt = conn.createStatement();
         
-        // Total enrolled courses
-        ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as count FROM enrollments WHERE student_id = " + userId);
+        // Total enrolled subjects
+        ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as count FROM student_subject_enrollment WHERE student_id = " + userId);
         if (rs.next()) totalCourses = rs.getInt("count");
         
         // Marks received
@@ -36,7 +36,7 @@
         if (rs.next()) marksReceived = rs.getInt("count");
         
         // Attendance percentage
-        rs = stmt.executeQuery("SELECT ROUND(SUM(IF(is_present = 1, 1, 0)) * 100 / COUNT(*), 2) as percentage FROM attendance WHERE student_id = " + userId);
+        rs = stmt.executeQuery("SELECT ROUND(SUM(IF(status = 'present', 1, 0)) * 100 / COUNT(*), 2) as percentage FROM attendance WHERE student_id = " + userId);
         if (rs.next()) {
             Object percObj = rs.getObject("percentage");
             if (percObj != null) {
@@ -93,9 +93,9 @@
         <!-- Statistics Cards -->
         <div class="dashboard-grid">
             <div class="dashboard-card">
-                <h3>Enrolled Courses</h3>
+                <h3>Enrolled Subjects</h3>
                 <div class="stat-number"><%= totalCourses %></div>
-                <div class="stat-label">Current Courses</div>
+                <div class="stat-label">Current Subjects</div>
                 <a href="student-courses.jsp" class="btn btn-primary" style="margin-top: 1rem; width: 100%; text-align: center;">View Courses</a>
             </div>
 

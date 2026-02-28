@@ -33,7 +33,7 @@
             String userType = request.getParameter("user_type");
             
             // Check if email already exists for another user
-            String emailCheckSQL = "SELECT id FROM users WHERE email = ? AND id != ?";
+            String emailCheckSQL = "SELECT user_id FROM users WHERE email = ? AND user_id != ?";
             PreparedStatement emailStmt = conn.prepareStatement(emailCheckSQL);
             emailStmt.setString(1, email);
             emailStmt.setInt(2, userId);
@@ -45,7 +45,7 @@
             } else {
                 // Build base update query
                 StringBuilder updateSQL = new StringBuilder(
-                    "UPDATE users SET full_name = ?, email = ?, phone = ?, address = ?");
+                    "UPDATE users SET full_name = ?, email = ?, phone = ?");
                 
                 // Add role-specific fields
                 if ("student".equals(userType)) {
@@ -72,7 +72,7 @@
                     updateSQL.append(", password = ?");
                 }
                 
-                updateSQL.append(" WHERE id = ?");
+                updateSQL.append(" WHERE user_id = ?");
                 
                 PreparedStatement updateStmt = conn.prepareStatement(updateSQL.toString());
                 int paramIndex = 1;
@@ -334,14 +334,14 @@
                             Connection conn = DriverManager.getConnection(
                                 "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                             
-                            String sql = "SELECT id, full_name, email, phone, user_type, status FROM users WHERE status = 'approved' ORDER BY user_type, id";
+                            String sql = "SELECT user_id, full_name, email, phone, user_type, status FROM users WHERE status = 'approved' ORDER BY user_type, user_id";
                             Statement stmt = conn.createStatement();
                             ResultSet rs = stmt.executeQuery(sql);
                             
                             boolean hasUsers = false;
                             while (rs.next()) {
                                 hasUsers = true;
-                                int userId = rs.getInt("id");
+                                int userId = rs.getInt("user_id");
                                 String fullName = rs.getString("full_name");
                                 String emailAddr = rs.getString("email");
                                 String phone = rs.getString("phone");

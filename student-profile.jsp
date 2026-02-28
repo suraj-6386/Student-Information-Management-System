@@ -16,7 +16,7 @@
         Connection conn = DriverManager.getConnection(
             "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
         
-        String sql = "SELECT full_name, email, phone FROM users WHERE id = ?";
+        String sql = "SELECT full_name, email, phone FROM users WHERE user_id = ?";
         PreparedStatement stmt = conn.prepareStatement(sql);
         stmt.setInt(1, userId);
         ResultSet rs = stmt.executeQuery();

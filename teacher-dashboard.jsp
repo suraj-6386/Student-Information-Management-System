@@ -26,13 +26,13 @@
         
         Statement stmt = conn.createStatement();
         
-        // Total assigned courses
-        ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as count FROM course_teacher WHERE teacher_id = " + userId);
+        // Total assigned subjects
+        ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as count FROM subject_teacher WHERE teacher_id = " + userId);
         if (rs.next()) totalCourses = rs.getInt("count");
         
-        // Total students (from enrollments in assigned courses)
-        rs = stmt.executeQuery("SELECT COUNT(DISTINCT e.student_id) as count FROM enrollments e " +
-                               "JOIN course_teacher ct ON e.course_id = ct.course_id WHERE ct.teacher_id = " + userId);
+        // Total students (from subject enrollments)
+        rs = stmt.executeQuery("SELECT COUNT(DISTINCT e.student_id) as count FROM student_subject_enrollment e " +
+                               "JOIN subject_teacher st ON e.subject_id = st.subject_id WHERE st.teacher_id = " + userId);
         if (rs.next()) totalStudents = rs.getInt("count");
         
         conn.close();
@@ -84,9 +84,9 @@
         <!-- Statistics Cards -->
         <div class="dashboard-grid">
             <div class="dashboard-card">
-                <h3>Assigned Courses</h3>
+                <h3>Assigned Subjects</h3>
                 <div class="stat-number"><%= totalCourses %></div>
-                <div class="stat-label">Courses Teaching</div>
+                <div class="stat-label">Subjects Teaching</div>
                 <a href="teacher-courses.jsp" class="btn btn-primary" style="margin-top: 1rem; width: 100%; text-align: center;">View Courses</a>
             </div>
 

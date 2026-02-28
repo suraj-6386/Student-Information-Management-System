@@ -15,19 +15,21 @@
         String subjectName = request.getParameter("subject_name");
         String credits = request.getParameter("credits");
         String semester = request.getParameter("semester");
+        String courseId = request.getParameter("course_id");
         
-        if (subjectCode != null && subjectName != null && credits != null && semester != null) {
+        if (subjectCode != null && subjectName != null && credits != null && semester != null && courseId != null) {
             try {
                 Class.forName("com.mysql.jdbc.Driver");
                 Connection conn = DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                 
-                String sql = "INSERT INTO subjects (subject_code, subject_name, credits, semester) VALUES (?, ?, ?, ?)";
+                String sql = "INSERT INTO subjects (subject_code, subject_name, course_id, credits, semester) VALUES (?, ?, ?, ?, ?)";
                 PreparedStatement stmt = conn.prepareStatement(sql);
                 stmt.setString(1, subjectCode);
                 stmt.setString(2, subjectName);
-                stmt.setInt(3, Integer.parseInt(credits));
-                stmt.setInt(4, Integer.parseInt(semester));
+                stmt.setInt(3, Integer.parseInt(courseId));
+                stmt.setInt(4, Integer.parseInt(credits));
+                stmt.setInt(5, Integer.parseInt(semester));
                 
                 stmt.executeUpdate();
                 message = "Subject created successfully!";
@@ -86,6 +88,32 @@
                 <div class="form-group">
                     <label for="subject_name">Subject Name *</label>
                     <input type="text" id="subject_name" name="subject_name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="course_id">Course *</label>
+                    <select id="course_id" name="course_id" required>
+                        <option value="">-- Select Course --</option>
+                        <%
+                            try {
+                                Class.forName("com.mysql.jdbc.Driver");
+                                Connection conn = DriverManager.getConnection(
+                                    "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
+                                
+                                String sql = "SELECT course_id, course_name FROM courses ORDER BY course_name";
+                                Statement stmt = conn.createStatement();
+                                ResultSet rs = stmt.executeQuery(sql);
+                                
+                                while (rs.next()) {
+                                    out.println("<option value='" + rs.getInt("course_id") + "'>" + rs.getString("course_name") + "</option>");
+                                }
+                                
+                                rs.close();
+                                stmt.close();
+                                conn.close();
+                            } catch (Exception e) {}
+                        %>
+                    </select>
                 </div>
 
                 <div class="form-group">

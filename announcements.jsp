@@ -21,7 +21,7 @@
                 Connection conn = DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                 
-                String sql = "INSERT INTO announcements (title, content, posted_by, posted_date) VALUES (?, ?, ?, NOW())";
+                String sql = "INSERT INTO announcements (title, content, posted_by, visibility_level) VALUES (?, ?, ?, 'all')";
                 PreparedStatement stmt = conn.prepareStatement(sql);
                 stmt.setString(1, title);
                 stmt.setString(2, content);
@@ -99,7 +99,7 @@
                     Connection conn = DriverManager.getConnection(
                         "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                     
-                    String sql = "SELECT id, title, content, posted_by, posted_date FROM announcements ORDER BY posted_date DESC LIMIT 10";
+                    String sql = "SELECT announcement_id, title, content, posted_by, posted_at FROM announcements ORDER BY posted_at DESC LIMIT 10";
                     Statement stmt = conn.createStatement();
                     ResultSet rs = stmt.executeQuery(sql);
                     
@@ -112,7 +112,7 @@
             <div style="border-bottom: 1px solid #ddd; padding: 1.5rem 0;">
                 <h4><%= rs.getString("title") %></h4>
                 <p><%= rs.getString("content") %></p>
-                <small style="color: #999;">Posted on <%= rs.getString("posted_date") %></small>
+                <small style="color: #999;">Posted on <%= rs.getString("posted_at") %></small>
             </div>
             <%
                     }

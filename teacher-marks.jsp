@@ -251,11 +251,12 @@
                                     Connection conn = DriverManager.getConnection(
                                         "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                                     
-                                    String sql = "SELECT DISTINCT c.course_id, c.course_code, c.course_name " +
-                                                "FROM courses c " +
-                                                "JOIN course_teacher ct ON c.course_id = ct.course_id " +
-                                                "WHERE ct.teacher_id = ? " +
-                                                "ORDER BY c.course_name ASC";
+                                    String sql = "SELECT DISTINCT s.subject_id, s.subject_code, s.subject_name, c.course_name " +
+                                                "FROM subjects s " +
+                                                "JOIN courses c ON s.course_id = c.course_id " +
+                                                "JOIN subject_teacher st ON s.subject_id = st.subject_id " +
+                                                "WHERE st.teacher_id = ? " +
+                                                "ORDER BY c.course_name, s.subject_code ASC";
                                     
                                     PreparedStatement stmt = conn.prepareStatement(sql);
                                     stmt.setInt(1, teacherId);
@@ -292,21 +293,21 @@
             
             <div class="marks-grid">
                 <div class="mark-input-group">
-                    <label for="assignment">Assignment Marks</label>
-                    <input type="number" id="assignment" name="assignment" min="0" max="100" value="0" 
+                    <label for="theory_marks">Theory Marks</label>
+                    <input type="number" id="theory_marks" name="theory_marks" min="0" max="100" value="0" 
                            form="marksForm" onchange="calculateTotal()" oninput="calculateTotal()">
                     <small style="color: #7f8c8d;">Out of 100</small>
                 </div>
 
                 <div class="mark-input-group">
-                    <label for="mid_exam">Mid Exam Marks</label>
-                    <input type="number" id="mid_exam" name="mid_exam" min="0" max="100" value="0" 
+                    <label for="practical_marks">Practical Marks</label>
+                    <input type="number" id="practical_marks" name="practical_marks" min="0" max="100" value="0" 
                            form="marksForm" onchange="calculateTotal()" oninput="calculateTotal()">
                     <small style="color: #7f8c8d;">Out of 100</small>
                 </div>
 
                 <div class="mark-input-group">
-                    <label for="final_exam">Final Exam Marks</label>
+                    <label for="assignment_marks">Assignment Marks</label>
                     <input type="number" id="final_exam" name="final_exam" min="0" max="100" value="0" 
                            form="marksForm" onchange="calculateTotal()" oninput="calculateTotal()">
                     <small style="color: #7f8c8d;">Out of 100</small>
@@ -388,11 +389,11 @@
         }
         
         function calculateTotal() {
-            const assignment = parseInt(document.getElementById('assignment').value) || 0;
-            const midExam = parseInt(document.getElementById('mid_exam').value) || 0;
-            const finalExam = parseInt(document.getElementById('final_exam').value) || 0;
+            const theoryMarks = parseInt(document.getElementById('theory_marks').value) || 0;
+            const practicalMarks = parseInt(document.getElementById('practical_marks').value) || 0;
+            const assignmentMarks = parseInt(document.getElementById('assignment_marks').value) || 0;
             
-            const total = assignment + midExam + finalExam;
+            const total = theoryMarks + practicalMarks + assignmentMarks;
             document.getElementById('totalMarks').textContent = total + ' / 300';
             
             // Calculate and display grade

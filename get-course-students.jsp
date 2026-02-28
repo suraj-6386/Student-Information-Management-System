@@ -20,10 +20,11 @@
             "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
         
         // Query: Get all students enrolled in the course, sorted by roll number
-        String sql = "SELECT u.id, u.full_name, u.email, u.roll_number " +
+        String sql = "SELECT u.user_id, u.full_name, u.email, u.roll_number " +
                     "FROM users u " +
-                    "JOIN enrollments e ON u.id = e.student_id " +
-                    "WHERE e.course_id = ? AND u.status = 'approved' AND u.user_type = 'student' " +
+                    "JOIN student_subject_enrollment e ON u.user_id = e.student_id " +
+                    "JOIN subjects sub ON e.subject_id = sub.subject_id " +
+                    "WHERE sub.course_id = ? AND u.status = 'approved' AND u.user_type = 'student' " +
                     "ORDER BY u.roll_number ASC";
         
         PreparedStatement stmt = conn.prepareStatement(sql);
@@ -36,7 +37,7 @@
         while (rs.next()) {
             if (!first) json.append(",");
             json.append("{");
-            json.append("\"id\":").append(rs.getInt("id")).append(",");
+            json.append("\"id\":").append(rs.getInt("user_id")).append(",");
             json.append("\"full_name\":\"").append(rs.getString("full_name").replace("\"", "\\\"")).append("\",");
             json.append("\"email\":\"").append(rs.getString("email").replace("\"", "\\\"")).append("\",");
             json.append("\"roll_number\":\"").append((rs.getString("roll_number") != null ? rs.getString("roll_number") : "").replace("\"", "\\\"")).append("\"");

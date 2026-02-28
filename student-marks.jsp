@@ -40,12 +40,12 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Course ID</th>
-                        <th>Course Name</th>
-                        <th>Subject</th>
+                        <th>Subject ID</th>
+                        <th>Subject Code</th>
+                        <th>Subject Name</th>
+                        <th>Theory</th>
+                        <th>Practical</th>
                         <th>Assignment</th>
-                        <th>Mid Exam</th>
-                        <th>Final Exam</th>
                         <th>Total Marks</th>
                         <th>Grade</th>
                     </tr>
@@ -57,7 +57,12 @@
                             Connection conn = DriverManager.getConnection(
                                 "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                             
-                            String sql = "SELECT m.course_id, c.course_code, c.course_name, m.assignment, m.mid_exam, m.final_exam, (m.assignment + m.mid_exam + m.final_exam) as total FROM marks m JOIN courses c ON m.course_id = c.course_id WHERE m.student_id = ?";
+                            String sql = "SELECT m.subject_id, s.subject_code, s.subject_name, m.theory_marks, m.practical_marks, m.assignment_marks, " +
+                                        "(m.theory_marks + m.practical_marks + m.assignment_marks) as total_marks, m.grade " +
+                                        "FROM marks m " +
+                                        "JOIN subjects s ON m.subject_id = s.subject_id " +
+                                        "WHERE m.student_id = ? " +
+                                        "ORDER BY m.evaluated_at DESC";
                             PreparedStatement stmt = conn.prepareStatement(sql);
                             stmt.setInt(1, userId);
                             ResultSet rs = stmt.executeQuery();
@@ -67,18 +72,16 @@
                             }
                             
                             while (rs.next()) {
-                                int total = rs.getInt("total");
-                                String grade = total >= 80 ? "A" : total >= 70 ? "B" : total >= 60 ? "C" : total >= 50 ? "D" : "F";
                     %>
                     <tr>
-                        <td><%= rs.getInt("course_id") %></td>
-                        <td><%= rs.getString("course_code") %></td>
-                        <td><%= rs.getString("course_name") %></td>
-                        <td><%= rs.getInt("assignment") %></td>
-                        <td><%= rs.getInt("mid_exam") %></td>
-                        <td><%= rs.getInt("final_exam") %></td>
-                        <td><strong><%= total %>/300</strong></td>
-                        <td><strong><%= grade %></strong></td>
+                        <td><%= rs.getInt("subject_id") %></td>
+                        <td><%= rs.getString("subject_code") %></td>
+                        <td><%= rs.getString("subject_name") %></td>
+                        <td><%= rs.getInt("theory_marks") %></td>
+                        <td><%= rs.getInt("practical_marks") %></td>
+                        <td><%= rs.getInt("assignment_marks") %></td>
+                        <td><strong><%= rs.getInt("total_marks") %>/300</strong></td>
+                        <td><strong><%= rs.getString("grade") %></strong></td>
                     </tr>
                     <%
                             }

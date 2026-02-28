@@ -20,7 +20,7 @@
                 "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
             
             String status = "approve".equals(action) ? "approved" : "rejected";
-            String sql = "UPDATE users SET status = ? WHERE id = ? AND status = 'pending'";
+            String sql = "UPDATE users SET status = ? WHERE user_id = ? AND status = 'pending'";
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, status);
             stmt.setInt(2, Integer.parseInt(userId));
@@ -96,7 +96,7 @@
                             Connection conn = DriverManager.getConnection(
                                 "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                             
-                            String sql = "SELECT id, full_name, email, phone, user_type, status FROM users WHERE status = 'pending' ORDER BY id DESC";
+                            String sql = "SELECT user_id, full_name, email, phone, user_type, status FROM users WHERE status = 'pending' ORDER BY user_id DESC";
                             Statement stmt = conn.createStatement();
                             ResultSet rs = stmt.executeQuery(sql);
                             
@@ -107,7 +107,7 @@
                             while (rs.next()) {
                     %>
                     <tr>
-                        <td><%= rs.getInt("id") %></td>
+                        <td><%= rs.getInt("user_id") %></td>
                         <td><%= rs.getString("full_name") %></td>
                         <td><%= rs.getString("email") %></td>
                         <td><%= rs.getString("phone") %></td>
@@ -125,8 +125,8 @@
                             </span>
                         </td>
                         <td>
-                            <a href="admin-pending.jsp?action=approve&user_id=<%= rs.getInt("id") %>" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin-right: 0.25rem;">Approve</a>
-                            <a href="admin-pending.jsp?action=reject&user_id=<%= rs.getInt("id") %>" class="btn btn-danger" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Reject</a>
+                            <a href="admin-pending.jsp?action=approve&user_id=<%= rs.getInt("user_id") %>" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin-right: 0.25rem;">Approve</a>
+                            <a href="admin-pending.jsp?action=reject&user_id=<%= rs.getInt("user_id") %>" class="btn btn-danger" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Reject</a>
                         </td>
                     </tr>
                     <%

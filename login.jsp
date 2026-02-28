@@ -13,17 +13,21 @@
         
         if (email != null && password != null && !email.isEmpty() && !password.isEmpty()) {
             try {
-                Class.forName("com.mysql.jdbc.Driver");
-                Connection conn = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
-                
+               Class.forName("com.mysql.cj.jdbc.Driver");
+
+Connection conn = DriverManager.getConnection(
+    "jdbc:mysql://localhost:3306/student_info_system?useSSL=false&serverTimezone=UTC",
+    "root",
+    "15056324"
+);
                 // Hash password
                 MessageDigest md = MessageDigest.getInstance("SHA-256");
-                byte[] hashedPassword = md.digest(password.getBytes());
-                String hashedPasswordStr = Base64.getEncoder().encodeToString(hashedPassword);
+byte[] hashedPassword = md.digest(password.getBytes("UTF-8"));
+String hashedPasswordStr = Base64.getEncoder().encodeToString(hashedPassword);
                 
                 // Query user
-                String sql = "SELECT id, full_name, user_type, status FROM users WHERE email = ? AND password = ?";
+                String sql =
+"SELECT user_id, full_name, user_type, status FROM users WHERE email = ? AND password_hash = ?";
                 PreparedStatement stmt = conn.prepareStatement(sql);
                 stmt.setString(1, email);
                 stmt.setString(2, hashedPasswordStr);
@@ -41,7 +45,7 @@
                         messageType = "warning";
                     } else if ("approved".equals(status)) {
                         // Set session
-                        session.setAttribute("userId", rs.getInt("id"));
+                        session.setAttribute("userId", rs.getInt("user_id"));
                         session.setAttribute("userName", rs.getString("full_name"));
                         session.setAttribute("userType", rs.getString("user_type"));
                         session.setAttribute("userEmail", email);

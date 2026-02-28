@@ -58,8 +58,8 @@
                     int totalCourses = 0;
                     if (rs.next()) totalCourses = rs.getInt("count");
                     
-                    // Total Enrollments
-                    rs = stmt.executeQuery("SELECT COUNT(*) as count FROM enrollments");
+                    // Total Enrollments (subjects)
+                    rs = stmt.executeQuery("SELECT COUNT(DISTINCT student_id) as count FROM student_subject_enrollment");
                     int totalEnrollments = 0;
                     if (rs.next()) totalEnrollments = rs.getInt("count");
             %>
@@ -114,7 +114,12 @@
                                 Connection conn = DriverManager.getConnection(
                                     "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                                 
-                                String sql = "SELECT c.semester, c.course_name, COUNT(e.student_id) as count FROM courses c LEFT JOIN enrollments e ON c.course_id = e.course_id GROUP BY c.course_id ORDER BY c.semester, c.course_name";
+                                String sql = "SELECT s.semester, c.course_name, COUNT(e.student_id) as count " +
+                                             "FROM subjects s " +
+                                             "JOIN courses c ON s.course_id = c.course_id " +
+                                             "LEFT JOIN student_subject_enrollment e ON s.subject_id = e.subject_id " +
+                                             "GROUP BY s.subject_id, c.course_name, s.semester " +
+                                             "ORDER BY s.semester, c.course_name";
                                 Statement stmt = conn.createStatement();
                                 ResultSet rs = stmt.executeQuery(sql);
                                 

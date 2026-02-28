@@ -55,7 +55,7 @@
                     "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                 
                 // Check if email already exists
-                String checkSql = "SELECT id FROM users WHERE email = ?";
+                String checkSql = "SELECT user_id FROM users WHERE email = ?";
                 PreparedStatement checkStmt = conn.prepareStatement(checkSql);
                 checkStmt.setString(1, email);
                 ResultSet rs = checkStmt.executeQuery();
@@ -70,16 +70,15 @@
                     String hashedPasswordStr = Base64.getEncoder().encodeToString(hashedPassword);
                     
                     // Insert new user with all fields
-                    String insertSql = "INSERT INTO users (full_name, email, phone, user_type, password, status, address, ";
-                    String values = "VALUES (?, ?, ?, ?, ?, 'pending', ?, ";
-                    String params = "?, ?, ?, ?, ?, ?, ?, ?, ?"; // 9 additional params for student
+                    String insertSql = "INSERT INTO users (full_name, email, phone, user_type, password_hash, status, ";
+                    String values = "VALUES (?, ?, ?, ?, ?, 'pending', ";
                     
                     if ("student".equals(userType)) {
-                        insertSql += "roll_number, date_of_birth, gender, course_id, semester, parent_name, parent_contact, admission_year) ";
+                        insertSql += "roll_number, course_id, semester) ";
                         insertSql += values + params + ")";
                     } else if ("teacher".equals(userType)) {
                         params = "?, ?, ?, ?"; // 4 additional params for teacher
-                        insertSql += "employee_id, department, qualification, experience) ";
+                        insertSql += "employee_id, department) ";
                         insertSql += values + params + ")";
                     }
                     
@@ -89,22 +88,17 @@
                     insertStmt.setString(3, phone);
                     insertStmt.setString(4, userType);
                     insertStmt.setString(5, hashedPasswordStr);
-                    insertStmt.setString(6, address);
+                    insertStmt.setString(6, phone);
                     
                     if ("student".equals(userType)) {
                         insertStmt.setString(7, rollNumber);
-                        insertStmt.setString(8, dob);
-                        insertStmt.setString(9, gender);
+                        insertStmt.setString(8, null); // date_of_birth removed
+                        insertStmt.setString(9, null); // gender removed
                         insertStmt.setString(10, courseId != null && !courseId.isEmpty() ? courseId : null);
                         insertStmt.setString(11, semester);
-                        insertStmt.setString(12, parentName);
-                        insertStmt.setString(13, parentContact);
-                        insertStmt.setString(14, admissionYear);
                     } else if ("teacher".equals(userType)) {
                         insertStmt.setString(7, employeeId);
                         insertStmt.setString(8, department);
-                        insertStmt.setString(9, qualification);
-                        insertStmt.setString(10, experience);
                     }
                     
                     insertStmt.executeUpdate();

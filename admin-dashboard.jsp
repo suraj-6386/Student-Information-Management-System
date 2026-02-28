@@ -53,11 +53,11 @@
         rs = stmt.executeQuery("SELECT COUNT(*) as count FROM courses");
         if (rs.next()) totalCourses = rs.getInt("count");
         
-        rs = stmt.executeQuery("SELECT COUNT(DISTINCT course_id) as count FROM course_teacher");
+        rs = stmt.executeQuery("SELECT COUNT(*) as count FROM subjects");
         if (rs.next()) assignedCourses = rs.getInt("count");
         
         // Enrollment statistics
-        rs = stmt.executeQuery("SELECT COUNT(*) as count FROM enrollments");
+        rs = stmt.executeQuery("SELECT COUNT(DISTINCT student_id) as count FROM student_subject_enrollment");
         if (rs.next()) totalEnrollments = rs.getInt("count");
         
         conn.close();

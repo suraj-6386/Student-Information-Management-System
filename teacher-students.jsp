@@ -55,7 +55,14 @@
                             Connection conn = DriverManager.getConnection(
                                 "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                             
-                            String sql = "SELECT DISTINCT u.id, u.full_name, u.email, u.phone, c.course_name, u.status FROM class_teacher ct JOIN users u ON ct.student_id = u.id LEFT JOIN courses c ON ct.course_id = c.course_id WHERE ct.teacher_id = ? AND u.status = 'approved' ORDER BY u.full_name";
+                            String sql = "SELECT DISTINCT u.user_id, u.full_name, u.email, u.phone, c.course_name, u.status " +
+                                         "FROM subject_teacher st " +
+                                         "JOIN subjects s ON st.subject_id = s.subject_id " +
+                                         "JOIN courses c ON s.course_id = c.course_id " +
+                                         "JOIN student_subject_enrollment sse ON s.subject_id = sse.subject_id " +
+                                         "JOIN users u ON sse.student_id = u.user_id " +
+                                         "WHERE st.teacher_id = ? AND u.status = 'approved' " +
+                                         "ORDER BY u.full_name";
                             PreparedStatement stmt = conn.prepareStatement(sql);
                             stmt.setInt(1, userId);
                             ResultSet rs = stmt.executeQuery();
@@ -67,7 +74,7 @@
                             while (rs.next()) {
                     %>
                     <tr>
-                        <td><%= rs.getInt("id") %></td>
+                        <td><%= rs.getInt("user_id") %></td>
                         <td><%= rs.getString("full_name") %></td>
                         <td><%= rs.getString("email") %></td>
                         <td><%= rs.getString("phone") %></td>

@@ -40,9 +40,10 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Course ID</th>
-                        <th>Course Name</th>
-                        <th>Classes Attended</th>
+                        <th>Subject Code</th>
+                        <th>Subject Name</th>
+                        <th>Degree Program</th>
+                        <th>Classes Present</th>
                         <th>Total Classes</th>
                         <th>Attendance %</th>
                         <th>Status</th>
@@ -55,7 +56,14 @@
                             Connection conn = DriverManager.getConnection(
                                 "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                             
-                            String sql = "SELECT a.course_id, c.course_name, COUNT(CASE WHEN a.is_present = 1 THEN 1 END) as attended, COUNT(*) as total FROM attendance a JOIN courses c ON a.course_id = c.course_id WHERE a.student_id = ? GROUP BY a.course_id";
+                            String sql = "SELECT a.subject_id, s.subject_code, s.subject_name, c.course_name, " +
+                                        "SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END) as attended, " +
+                                        "COUNT(*) as total " +
+                                        "FROM attendance a " +
+                                        "JOIN subjects s ON a.subject_id = s.subject_id " +
+                                        "JOIN courses c ON s.course_id = c.course_id " +
+                                        "WHERE a.student_id = ? " +
+                                        "GROUP BY a.subject_id ";
                             PreparedStatement stmt = conn.prepareStatement(sql);
                             stmt.setInt(1, userId);
                             ResultSet rs = stmt.executeQuery();
@@ -70,7 +78,8 @@
                                 int percentage = total > 0 ? (attended * 100) / total : 0;
                     %>
                     <tr>
-                        <td><%= rs.getInt("course_id") %></td>
+                        <td><%= rs.getString("subject_code") %></td>
+                        <td><%= rs.getString("subject_name") %></td>
                         <td><%= rs.getString("course_name") %></td>
                         <td><%= attended %></td>
                         <td><%= total %></td>
