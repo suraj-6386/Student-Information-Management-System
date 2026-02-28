@@ -2,10 +2,16 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <%
-    if (session.getAttribute("userId") == null || !"student".equals(session.getAttribute("userType"))) {
+    if (session == null || session.isNew() || session.getAttribute("userId") == null || session.getAttribute("userType") == null) {
         response.sendRedirect("login.jsp");
         return;
     }
+    
+    if (!"student".equals(session.getAttribute("userType"))) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+    
     int userId = (Integer) session.getAttribute("userId");
 %>
 
@@ -20,12 +26,10 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-brand">
-                <h1>SIMS</h1>
-                <p>Student Portal</p>
-            </div>
+            <div class="nav-brand"><h1>SIMS</h1><p>Student Portal</p></div>
             <div class="nav-links">
                 <a href="student-dashboard.jsp" class="nav-link">Dashboard</a>
+                <a href="student-courses.jsp" class="nav-link">Courses</a>
                 <a href="student-attendance.jsp" class="nav-link active">Attendance</a>
                 <a href="student-marks.jsp" class="nav-link">Marks</a>
                 <a href="logout.jsp" class="nav-link">Logout</a>
@@ -34,86 +38,69 @@
     </nav>
 
     <div class="dashboard-container">
-        <h2>My Attendance Record</h2>
-
+        <h2>✓ My Attendance</h2>
+        
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
-                        <th>Subject Code</th>
-                        <th>Subject Name</th>
-                        <th>Degree Program</th>
-                        <th>Classes Present</th>
-                        <th>Total Classes</th>
-                        <th>Attendance %</th>
-                        <th>Status</th>
+                        <th>Subject</th>
+                        <th>Total</th>
+                        <th>Present</th>
+                        <th>Absent</th>
+                        <th>Percentage</th>
                     </tr>
                 </thead>
                 <tbody>
                     <%
                         try {
                             Class.forName("com.mysql.jdbc.Driver");
-                            Connection conn = DriverManager.getConnection(
-                                "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
+                            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                             
-                            String sql = "SELECT a.subject_id, s.subject_code, s.subject_name, c.course_name, " +
-                                        "SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END) as attended, " +
-                                        "COUNT(*) as total " +
+                            String sql = "SELECT s.subject_name, " +
+                                        "COUNT(*) as total, " +
+                                        "SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END) as present_count, " +
+                                        "SUM(CASE WHEN a.status = 'absent' THEN 1 ELSE 0 END) as absent_count, " +
+                                        "ROUND(SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) as percentage " +
                                         "FROM attendance a " +
                                         "JOIN subjects s ON a.subject_id = s.subject_id " +
-                                        "JOIN courses c ON s.course_id = c.course_id " +
                                         "WHERE a.student_id = ? " +
-                                        "GROUP BY a.subject_id ";
+                                        "GROUP BY s.subject_id, s.subject_name";
                             PreparedStatement stmt = conn.prepareStatement(sql);
                             stmt.setInt(1, userId);
                             ResultSet rs = stmt.executeQuery();
                             
                             if (!rs.isBeforeFirst()) {
-                                out.println("<tr><td colspan='6' style='text-align: center; padding: 2rem;'>No attendance records</td></tr>");
+                                out.println("<tr><td colspan='5' style='text-align:center;'>No attendance records</td></tr>");
                             }
                             
                             while (rs.next()) {
-                                int attended = rs.getInt("attended");
-                                int total = rs.getInt("total");
-                                int percentage = total > 0 ? (attended * 100) / total : 0;
                     %>
                     <tr>
-                        <td><%= rs.getString("subject_code") %></td>
                         <td><%= rs.getString("subject_name") %></td>
-                        <td><%= rs.getString("course_name") %></td>
-                        <td><%= attended %></td>
-                        <td><%= total %></td>
-                        <td><strong><%= percentage %>%</strong></td>
-                        <td>
-                            <% if (percentage >= 75) { %>
-                                <span style="background: #d1fae5; color: #065f46; padding: 0.25rem 0.75rem; border-radius: 4px;">Good</span>
-                            <% } else if (percentage >= 60) { %>
-                                <span style="background: #fef3c7; color: #78350f; padding: 0.25rem 0.75rem; border-radius: 4px;">Average</span>
-                            <% } else { %>
-                                <span style="background: #fee2e2; color: #7f1d1d; padding: 0.25rem 0.75rem; border-radius: 4px;">Low</span>
-                            <% } %>
-                        </td>
+                        <td><%= rs.getInt("total") %></td>
+                        <td><%= rs.getInt("present_count") %></td>
+                        <td><%= rs.getInt("absent_count") %></td>
+                        <td><%= rs.getDouble("percentage") %>%</td>
                     </tr>
                     <%
                             }
                             conn.close();
                         } catch (Exception e) {
-                            out.println("<tr><td colspan='6' style='color: red;'>Error: " + e.getMessage() + "</td></tr>");
+                            out.println("<tr><td colspan='5' style='color:red;'>Error: " + e.getMessage() + "</td></tr>");
                         }
                     %>
                 </tbody>
             </table>
         </div>
-
-        <div style="margin-top: 2rem;">
+        
+        <div style="margin-top:2rem;">
             <a href="student-dashboard.jsp" class="btn btn-secondary">← Back to Dashboard</a>
         </div>
     </div>
 
     <footer class="footer">
-        <div class="footer-bottom">
-            <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
-        </div>
+        <div class="footer-bottom"><p>&copy; 2026 SIMS. All rights reserved.</p></div>
     </footer>
 </body>
 </html>

@@ -2,7 +2,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <%
-    // Session Check - Fixed
     if (session == null || session.isNew() || 
         session.getAttribute("userId") == null || 
         session.getAttribute("userType") == null) {
@@ -138,11 +137,6 @@
             color: #7f8c8d;
         }
         
-        .empty-state-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-        
         .stats-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -176,7 +170,7 @@
         <div class="nav-container">
             <div class="nav-brand">
                 <h1>SIMS - Teacher Portal</h1>
-                <p>My Assigned Courses</p>
+                <p>My Assigned Subjects</p>
             </div>
             <div class="nav-links">
                 <a href="teacher-dashboard.jsp" class="nav-link">Dashboard</a>
@@ -191,8 +185,8 @@
 
     <div class="dashboard-container">
         <div class="page-header">
-            <h2>📚 My Assigned Courses</h2>
-            <p>View and manage your courses</p>
+            <h2>📚 My Assigned Subjects</h2>
+            <p>View and manage your subjects</p>
         </div>
 
         <%
@@ -201,8 +195,8 @@
                 Connection conn = DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                 
-                // Get total courses
-                String countSQL = "SELECT COUNT(*) as total FROM subject_teacher WHERE teacher_id = ?";
+                // Get total subjects
+                String countSQL = "SELECT COUNT(*) as total FROM subjects WHERE teacher_id = ?";
                 PreparedStatement countStmt = conn.prepareStatement(countSQL);
                 countStmt.setInt(1, teacherId);
                 ResultSet countRS = countStmt.executeQuery();
@@ -214,10 +208,10 @@
                 countStmt.close();
                 
                 // Get total students
-                String studentCountSQL = "SELECT COUNT(DISTINCT e.student_id) as total " +
-                                        "FROM student_subject_enrollment e " +
-                                        "JOIN subject_teacher st ON e.subject_id = st.subject_id " +
-                                        "WHERE st.teacher_id = ?";
+                String studentCountSQL = "SELECT COUNT(DISTINCT se.student_id) as total " +
+                                        "FROM subject_enrollment se " +
+                                        "JOIN subjects s ON se.subject_id = s.subject_id " +
+                                        "WHERE s.teacher_id = ? AND se.status = 'active'";
                 PreparedStatement studentStmt = conn.prepareStatement(studentCountSQL);
                 studentStmt.setInt(1, teacherId);
                 ResultSet studentRS = studentStmt.executeQuery();
@@ -232,7 +226,7 @@
         <!-- Statistics -->
         <div class="stats-container">
             <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <h3>Total Subjects Assigned</h3>
+                <h3>Total Subjects</h3>
                 <div class="stat-value"><%= totalCourses %></div>
             </div>
             <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
@@ -256,14 +250,12 @@
         <!-- Subjects List -->
         <div class="courses-grid">
         <%
-                    // Get all subjects assigned to teacher
                     String sql = "SELECT s.subject_id, s.subject_code, s.subject_name, s.credits, s.semester, " +
-                                "c.course_name, st.assigned_date, COUNT(DISTINCT e.student_id) as student_count " +
+                                "c.course_name, COUNT(DISTINCT se.student_id) as student_count " +
                                 "FROM subjects s " +
-                                "JOIN subject_teacher st ON s.subject_id = st.subject_id " +
                                 "JOIN courses c ON s.course_id = c.course_id " +
-                                "LEFT JOIN student_subject_enrollment e ON s.subject_id = e.subject_id AND e.status = 'active' " +
-                                "WHERE st.teacher_id = ? " +
+                                "LEFT JOIN subject_enrollment se ON s.subject_id = se.subject_id AND se.status = 'active' " +
+                                "WHERE s.teacher_id = ? " +
                                 "GROUP BY s.subject_id " +
                                 "ORDER BY c.course_name, s.semester, s.subject_code";
                     
@@ -279,7 +271,6 @@
                         int semester = rs.getInt("semester");
                         String courseName = rs.getString("course_name");
                         int studentCount = rs.getInt("student_count");
-                        Timestamp assignedDate = rs.getTimestamp("assigned_date");
         %>
         
         <div class="course-card">
@@ -288,7 +279,7 @@
             
             <div class="course-meta">
                 <div class="meta-item">
-                    <span class="meta-label">Degree Program:</span>
+                    <span class="meta-label">Course:</span>
                     <span class="meta-value"><%= courseName %></span>
                 </div>
                 <div class="meta-item">
@@ -303,26 +294,13 @@
                     <span class="meta-label">Students:</span>
                     <span class="meta-value"><%= studentCount %></span>
                 </div>
-                <div class="meta-item">
-                    <span class="meta-label">Assigned:</span>
-                    <span class="meta-value">
-                        <%
-                            if (assignedDate != null) {
-                                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy");
-                                out.print(sdf.format(new java.util.Date(assignedDate.getTime())));
-                            } else {
-                                out.print("N/A");
-                            }
-                        %>
-                    </span>
-                </div>
             </div>
             
             <div class="course-actions">
-                <a href="teacher-attendance.jsp" class="action-attendance" title="Mark Attendance">
+                <a href="teacher-attendance.jsp?subject_id=<%= subjectId %>" class="action-attendance" title="Mark Attendance">
                     ✓ Attendance
                 </a>
-                <a href="teacher-marks.jsp" class="action-marks" title="Enter Marks">
+                <a href="teacher-marks.jsp?subject_id=<%= subjectId %>" class="action-marks" title="Enter Marks">
                     📊 Marks
                 </a>
                 <a href="teacher-students.jsp?subject_id=<%= subjectId %>" class="action-students" title="View Students">

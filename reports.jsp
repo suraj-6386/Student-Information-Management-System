@@ -44,12 +44,12 @@
                     
                     // Total Students
                     Statement stmt = conn.createStatement();
-                    ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as count FROM users WHERE user_type = 'student'");
+                    ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as count FROM student WHERE status = 'active'");
                     int totalStudents = 0;
                     if (rs.next()) totalStudents = rs.getInt("count");
                     
                     // Total Teachers
-                    rs = stmt.executeQuery("SELECT COUNT(*) as count FROM users WHERE user_type = 'teacher'");
+                    rs = stmt.executeQuery("SELECT COUNT(*) as count FROM teacher WHERE status = 'active'");
                     int totalTeachers = 0;
                     if (rs.next()) totalTeachers = rs.getInt("count");
                     
@@ -59,7 +59,7 @@
                     if (rs.next()) totalCourses = rs.getInt("count");
                     
                     // Total Enrollments (subjects)
-                    rs = stmt.executeQuery("SELECT COUNT(DISTINCT student_id) as count FROM student_subject_enrollment");
+                    rs = stmt.executeQuery("SELECT COUNT(DISTINCT student_id) as count FROM subject_enrollment");
                     int totalEnrollments = 0;
                     if (rs.next()) totalEnrollments = rs.getInt("count");
             %>
@@ -117,7 +117,7 @@
                                 String sql = "SELECT s.semester, c.course_name, COUNT(e.student_id) as count " +
                                              "FROM subjects s " +
                                              "JOIN courses c ON s.course_id = c.course_id " +
-                                             "LEFT JOIN student_subject_enrollment e ON s.subject_id = e.subject_id " +
+                                             "LEFT JOIN subject_enrollment e ON s.subject_id = e.subject_id " +
                                              "GROUP BY s.subject_id, c.course_name, s.semester " +
                                              "ORDER BY s.semester, c.course_name";
                                 Statement stmt = conn.createStatement();

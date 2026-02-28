@@ -1,6 +1,7 @@
 <%@ page import="java.sql.*" %>
 <%@ page contentType="application/json" %>
 <%@ page import="java.util.*" %>
+
 <%
     Integer subjectId = null;
     try {
@@ -12,13 +13,13 @@
     
     try {
         Class.forName("com.mysql.jdbc.Driver");
-        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/student_info_system", "root", "");
+        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
         
-        String query = "SELECT u.user_id, u.full_name, u.roll_number, u.email " +
-                       "FROM student_subject_enrollment sse " +
-                       "JOIN users u ON sse.student_id = u.user_id " +
-                       "WHERE sse.subject_id = ? AND sse.status = 'active' AND u.status = 'approved' " +
-                       "ORDER BY u.full_name";
+        String query = "SELECT st.student_id, st.full_name, st.roll_number, st.email " +
+                       "FROM student st " +
+                       "JOIN subject_enrollment se ON st.student_id = se.student_id " +
+                       "WHERE se.subject_id = ? AND se.status = 'active' AND st.status = 'active' " +
+                       "ORDER BY st.full_name";
         
         PreparedStatement pstmt = conn.prepareStatement(query);
         pstmt.setInt(1, subjectId);
@@ -30,9 +31,9 @@
         while (rs.next()) {
             if (!first) out.print(",");
             out.print("{");
-            out.print("\"student_id\": " + rs.getInt("user_id") + ",");
+            out.print("\"student_id\": " + rs.getInt("student_id") + ",");
             out.print("\"full_name\": \"" + rs.getString("full_name") + "\",");
-            out.print("\"roll_number\": \"" + rs.getString("roll_number") + "\",");
+            out.print("\"roll_number\": \"" + (rs.getString("roll_number") != null ? rs.getString("roll_number") : "") + "\",");
             out.print("\"email\": \"" + rs.getString("email") + "\"");
             out.print("}");
             first = false;

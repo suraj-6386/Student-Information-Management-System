@@ -16,6 +16,7 @@
         String credits = request.getParameter("credits");
         String semester = request.getParameter("semester");
         String courseId = request.getParameter("course_id");
+        String teacherId = request.getParameter("teacher_id");
         
         if (subjectCode != null && subjectName != null && credits != null && semester != null && courseId != null) {
             try {
@@ -23,8 +24,17 @@
                 Connection conn = DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                 
-                String sql = "INSERT INTO subjects (subject_code, subject_name, course_id, credits, semester) VALUES (?, ?, ?, ?, ?)";
-                PreparedStatement stmt = conn.prepareStatement(sql);
+                String sql;
+                PreparedStatement stmt;
+                
+                if (teacherId != null && !teacherId.isEmpty()) {
+                    sql = "INSERT INTO subjects (subject_code, subject_name, course_id, credits, semester, teacher_id) VALUES (?, ?, ?, ?, ?, ?)";
+                    stmt = conn.prepareStatement(sql);
+                    stmt.setInt(6, Integer.parseInt(teacherId));
+                } else {
+                    sql = "INSERT INTO subjects (subject_code, subject_name, course_id, credits, semester) VALUES (?, ?, ?, ?, ?)";
+                    stmt = conn.prepareStatement(sql);
+                }
                 stmt.setString(1, subjectCode);
                 stmt.setString(2, subjectName);
                 stmt.setInt(3, Integer.parseInt(courseId));
@@ -117,6 +127,32 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="teacher_id">Assigned Teacher</label>
+                    <select id="teacher_id" name="teacher_id">
+                        <option value="">-- Select Teacher (Optional) --</option>
+                        <%
+                            try {
+                                Class.forName("com.mysql.jdbc.Driver");
+                                Connection conn = DriverManager.getConnection(
+                                    "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
+                                
+                                String sql = "SELECT teacher_id, full_name FROM teacher WHERE status = 'active' ORDER BY full_name";
+                                Statement stmt = conn.createStatement();
+                                ResultSet rs = stmt.executeQuery(sql);
+                                
+                                while (rs.next()) {
+                                    out.println("<option value='" + rs.getInt("teacher_id") + "'>" + rs.getString("full_name") + "</option>");
+                                }
+                                
+                                rs.close();
+                                stmt.close();
+                                conn.close();
+                            } catch (Exception e) {}
+                        %>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label for="credits">Credits *</label>
                     <input type="number" id="credits" name="credits" min="1" max="10" required>
                 </div>
@@ -138,6 +174,8 @@
                         <th>Subject ID</th>
                         <th>Subject Code</th>
                         <th>Subject Name</th>
+                        <th>Course</th>
+                        <th>Teacher</th>
                         <th>Credits</th>
                         <th>Semester</th>
                     </tr>
@@ -149,12 +187,16 @@
                             Connection conn = DriverManager.getConnection(
                                 "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                             
-                            String sql = "SELECT subject_id, subject_code, subject_name, credits, semester FROM subjects ORDER BY semester, subject_code";
+                            String sql = "SELECT s.*, c.course_name, t.full_name as teacher_name " +
+                                         "FROM subjects s " +
+                                         "LEFT JOIN courses c ON s.course_id = c.course_id " +
+                                         "LEFT JOIN teacher t ON s.teacher_id = t.teacher_id " +
+                                         "ORDER BY s.semester, s.subject_code";
                             Statement stmt = conn.createStatement();
                             ResultSet rs = stmt.executeQuery(sql);
                             
                             if (!rs.isBeforeFirst()) {
-                                out.println("<tr><td colspan='5' style='text-align: center; padding: 2rem;'>No subjects</td></tr>");
+                                out.println("<tr><td colspan='7' style='text-align: center; padding: 2rem;'>No subjects</td></tr>");
                             }
                             
                             while (rs.next()) {
@@ -163,6 +205,8 @@
                         <td><%= rs.getInt("subject_id") %></td>
                         <td><%= rs.getString("subject_code") %></td>
                         <td><%= rs.getString("subject_name") %></td>
+                        <td><%= rs.getString("course_name") != null ? rs.getString("course_name") : "N/A" %></td>
+                        <td><%= rs.getString("teacher_name") != null ? rs.getString("teacher_name") : "Not Assigned" %></td>
                         <td><%= rs.getInt("credits") %></td>
                         <td>Sem <%= rs.getInt("semester") %></td>
                     </tr>
@@ -170,7 +214,7 @@
                             }
                             conn.close();
                         } catch (Exception e) {
-                            out.println("<tr><td colspan='5' style='color: red;'>Error: " + e.getMessage() + "</td></tr>");
+                            out.println("<tr><td colspan='7' style='color: red;'>Error: " + e.getMessage() + "</td></tr>");
                         }
                     %>
                 </tbody>

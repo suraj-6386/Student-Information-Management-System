@@ -2,36 +2,41 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <%
-    if (session.getAttribute("userId") == null) {
+    if (session == null || session.isNew() || session.getAttribute("userId") == null || session.getAttribute("userType") == null) {
         response.sendRedirect("login.jsp");
         return;
     }
     
     int userId = (Integer) session.getAttribute("userId");
+    String userType = (String) session.getAttribute("userType");
     String message = "";
     String messageType = "";
     
-    if ("POST".equalsIgnoreCase(request.getMethod()) && "admin".equals(session.getAttribute("userType"))) {
-        String title = request.getParameter("title");
-        String content = request.getParameter("content");
+    if ("POST".equalsIgnoreCase(request.getMethod())) {
+        String action = request.getParameter("action");
         
-        if (title != null && content != null) {
+        if ("create".equals(action)) {
+            String title = request.getParameter("title");
+            String content = request.getParameter("content");
+            String visibility = request.getParameter("visibility");
+            
             try {
                 Class.forName("com.mysql.jdbc.Driver");
-                Connection conn = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
+                Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                 
-                String sql = "INSERT INTO announcements (title, content, posted_by, visibility_level) VALUES (?, ?, ?, 'all')";
-                PreparedStatement stmt = conn.prepareStatement(sql);
-                stmt.setString(1, title);
-                stmt.setString(2, content);
-                stmt.setInt(3, userId);
+                // Get teacher_id from session
+                int posterId = userId;
                 
-                stmt.executeUpdate();
+                PreparedStatement ps = conn.prepareStatement("INSERT INTO announcements (posted_by, title, content, visibility_level) VALUES (?, ?, ?, ?)");
+                ps.setInt(1, posterId);
+                ps.setString(2, title);
+                ps.setString(3, content);
+                ps.setString(4, visibility);
+                ps.executeUpdate();
+                ps.close();
+                
                 message = "Announcement posted successfully!";
                 messageType = "success";
-                
-                stmt.close();
                 conn.close();
             } catch (Exception e) {
                 message = "Error: " + e.getMessage();
@@ -52,92 +57,103 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-brand">
-                <h1>SIMS</h1>
-                <p>Announcements</p>
-            </div>
+            <div class="nav-brand"><h1>SIMS</h1><p>Announcements</p></div>
             <div class="nav-links">
-                <a href="announcements.jsp" class="nav-link active">Announcements</a>
+                <% if ("admin".equals(userType)) { %>
+                    <a href="admin-dashboard.jsp" class="nav-link">Dashboard</a>
+                <% } else if ("teacher".equals(userType)) { %>
+                    <a href="teacher-dashboard.jsp" class="nav-link">Dashboard</a>
+                <% } else { %>
+                    <a href="student-dashboard.jsp" class="nav-link">Dashboard</a>
+                <% } %>
                 <a href="logout.jsp" class="nav-link">Logout</a>
             </div>
         </div>
     </nav>
 
     <div class="dashboard-container">
-        <h2>System Announcements</h2>
-
+        <h2>📢 Announcements</h2>
+        
         <% if (!message.isEmpty()) { %>
-            <div class="alert alert-<%= messageType %>">
-                <%= message %>
-            </div>
+            <div class="alert alert-<%= messageType %>"><%= message %></div>
         <% } %>
-
-        <% if ("admin".equals(session.getAttribute("userType"))) { %>
-            <div class="form-container">
-                <h3>Post New Announcement</h3>
-                <form method="POST" action="announcements.jsp">
-                    <div class="form-group">
-                        <label for="title">Title *</label>
-                        <input type="text" id="title" name="title" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="content">Content *</label>
-                        <textarea id="content" name="content" required></textarea>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Post Announcement</button>
-                </form>
-            </div>
+        
+        <% if ("admin".equals(userType) || "teacher".equals(userType)) { %>
+        <div class="form-section">
+            <h3>Post New Announcement</h3>
+            <form method="POST">
+                <input type="hidden" name="action" value="create">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label>Content</label>
+                    <textarea name="content" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Visibility</label>
+                    <select name="visibility">
+                        <option value="all">All</option>
+                        <option value="students">Students Only</option>
+                        <option value="teachers">Teachers Only</option>
+                        <option value="admin">Admin Only</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Post Announcement</button>
+            </form>
+        </div>
         <% } %>
-
-        <h3 style="margin-top: 2rem;">Recent Announcements</h3>
-        <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        
+        <h3>Recent Announcements</h3>
+        <div class="announcements-list">
             <%
                 try {
                     Class.forName("com.mysql.jdbc.Driver");
-                    Connection conn = DriverManager.getConnection(
-                        "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
+                    Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                     
-                    String sql = "SELECT announcement_id, title, content, posted_by, posted_at FROM announcements ORDER BY posted_at DESC LIMIT 10";
-                    Statement stmt = conn.createStatement();
-                    ResultSet rs = stmt.executeQuery(sql);
+                    String sql = "SELECT a.*, t.full_name as poster_name FROM announcements a " +
+                                "JOIN teacher t ON a.posted_by = t.teacher_id " +
+                                "WHERE a.visibility_level = 'all' OR a.visibility_level = ? " +
+                                "ORDER BY a.posted_at DESC";
                     
-                    if (!rs.isBeforeFirst()) {
-                        out.println("<p style='text-align: center;'>No announcements yet</p>");
+                    if ("admin".equals(userType)) {
+                        sql = "SELECT a.*, t.full_name as poster_name FROM announcements a " +
+                              "JOIN teacher t ON a.posted_by = t.teacher_id " +
+                              "ORDER BY a.posted_at DESC";
                     }
                     
+                    PreparedStatement stmt = conn.prepareStatement(sql);
+                    if (!"admin".equals(userType)) {
+                        stmt.setString(1, userType + "s");
+                    }
+                    ResultSet rs = stmt.executeQuery();
+                    
+                    boolean hasAnnouncements = false;
                     while (rs.next()) {
+                        hasAnnouncements = true;
             %>
-            <div style="border-bottom: 1px solid #ddd; padding: 1.5rem 0;">
+            <div class="announcement-card">
                 <h4><%= rs.getString("title") %></h4>
                 <p><%= rs.getString("content") %></p>
-                <small style="color: #999;">Posted on <%= rs.getString("posted_at") %></small>
+                <div class="announcement-meta">
+                    Posted by <strong><%= rs.getString("poster_name") %></strong> on <%= rs.getTimestamp("posted_at") %>
+                </div>
             </div>
-            <%
+            <% }
+                    if (!hasAnnouncements) {
+                        out.println("<p>No announcements yet.</p>");
                     }
                     conn.close();
                 } catch (Exception e) {
-                    out.println("<p style='color: red;'>Error loading announcements: " + e.getMessage() + "</p>");
+                    out.println("<p style='color:red;'>Error: " + e.getMessage() + "</p>");
                 }
             %>
-        </div>
-
-        <div style="margin-top: 2rem;">
-            <% if ("admin".equals(session.getAttribute("userType"))) { %>
-                <a href="admin-dashboard.jsp" class="btn btn-secondary">← Back to Dashboard</a>
-            <% } else if ("student".equals(session.getAttribute("userType"))) { %>
-                <a href="student-dashboard.jsp" class="btn btn-secondary">← Back to Dashboard</a>
-            <% } else if ("teacher".equals(session.getAttribute("userType"))) { %>
-                <a href="teacher-dashboard.jsp" class="btn btn-secondary">← Back to Dashboard</a>
-            <% } %>
         </div>
     </div>
 
     <footer class="footer">
-        <div class="footer-bottom">
-            <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
-        </div>
+        <div class="footer-bottom"><p>&copy; 2026 SIMS. All rights reserved.</p></div>
     </footer>
 </body>
 </html>

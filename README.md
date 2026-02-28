@@ -590,7 +590,72 @@ StudentInfoManageSystem/
 - ✅ **Demo Data**: Complete sample data with all 4 degree programs
 
 ---
+## 🆔 Auto-Generated User IDs
 
+### Feature Overview
+
+As of the latest update, SIMS now features auto-generated User IDs for both students and teachers:
+
+- **Students**: `STU000001`, `STU000002`, etc.
+- **Teachers**: `TEA000001`, `TEA000002`, etc.
+
+### How It Works
+
+1. **During Registration**:
+   - Users register with email, full name, and other details
+   - System automatically generates a unique User ID
+   - User ID is displayed immediately after approval
+
+2. **Visible In**:
+   - ✅ Student Profile Page
+   - ✅ Teacher Profile Page
+   - ✅ Dashboard (next to user name)
+   - ✅ Various system reports
+
+3. **Login Method**:
+   - All users now login using **Email Address** (not username)
+   - Admin users also login with email (not username)
+   - Format: User email + password
+
+### Migration for Existing Databases
+
+If you have an existing SIMS database without User IDs:
+
+1. Run the migration script:
+   ```bash
+   MySQL > source ADD_USER_ID_MIGRATION.sql
+   ```
+
+2. Or manually execute:
+   ```sql
+   ALTER TABLE student ADD COLUMN user_id VARCHAR(20) UNIQUE NOT NULL;
+   ALTER TABLE teacher ADD COLUMN user_id VARCHAR(20) UNIQUE NOT NULL;
+   ```
+
+3. The system will auto-generate IDs for new registrations immediately.
+
+---
+
+## 🔐 Login Authentication
+
+### Email-Based Login
+
+The system now uses **email addresses** for authentication across all user types:
+
+| User Type | Login Field | Example |
+|-----------|------------|---------|
+| Student | Email | student@example.com |
+| Teacher | Email | teacher@school.edu |
+| Admin | Email | admin@sims.edu |
+
+### Key Benefits
+
+- ✅ Easier to remember (use actual email)
+- ✅ Consistent across all roles
+- ✅ Better security (emails are unique)
+- ✅ Supports password reset functionality
+
+---
 ## 🗓️ Version History
 
 ### v3.0 (February 28, 2026) - Current

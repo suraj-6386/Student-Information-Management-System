@@ -32,21 +32,21 @@
         Statement stmt = conn.createStatement();
         
         // Total users by type
-        ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as count FROM users WHERE user_type != 'admin'");
+        ResultSet rs = stmt.executeQuery("SELECT (SELECT COUNT(*) FROM student) + (SELECT COUNT(*) FROM teacher) as count");
         if (rs.next()) totalUsers = rs.getInt("count");
         
-        rs = stmt.executeQuery("SELECT COUNT(*) as count FROM users WHERE user_type = 'student' AND status = 'approved'");
+        rs = stmt.executeQuery("SELECT COUNT(*) as count FROM student WHERE status = 'active'");
         if (rs.next()) totalStudents = rs.getInt("count");
         
-        rs = stmt.executeQuery("SELECT COUNT(*) as count FROM users WHERE user_type = 'teacher' AND status = 'approved'");
+        rs = stmt.executeQuery("SELECT COUNT(*) as count FROM teacher WHERE status = 'active'");
         if (rs.next()) totalTeachers = rs.getInt("count");
         
-        // Pending appr ovals
-        rs = stmt.executeQuery("SELECT COUNT(*) as count FROM users WHERE status = 'pending'");
+        // Pending approvals
+        rs = stmt.executeQuery("SELECT (SELECT COUNT(*) FROM student WHERE status = 'pending') + (SELECT COUNT(*) FROM teacher WHERE status = 'pending') as count");
         if (rs.next()) pendingApprovals = rs.getInt("count");
         
         // Approved users
-        rs = stmt.executeQuery("SELECT COUNT(*) as count FROM users WHERE status = 'approved'");
+        rs = stmt.executeQuery("SELECT (SELECT COUNT(*) FROM student WHERE status = 'active') + (SELECT COUNT(*) FROM teacher WHERE status = 'active') as count");
         if (rs.next()) approvedUsers = rs.getInt("count");
         
         // Course statistics
@@ -57,7 +57,7 @@
         if (rs.next()) assignedCourses = rs.getInt("count");
         
         // Enrollment statistics
-        rs = stmt.executeQuery("SELECT COUNT(DISTINCT student_id) as count FROM student_subject_enrollment");
+        rs = stmt.executeQuery("SELECT COUNT(DISTINCT student_id) as count FROM subject_enrollment");
         if (rs.next()) totalEnrollments = rs.getInt("count");
         
         conn.close();
@@ -218,6 +218,7 @@
                 <a href="admin-pending.jsp" class="nav-link">Approvals</a>
                 <a href="admin-users.jsp" class="nav-link">Users</a>
                 <a href="courses.jsp" class="nav-link">Courses</a>
+                <a href="announcements.jsp" class="nav-link">Announcements</a>
                 <a href="reports.jsp" class="nav-link">Reports</a>
                 <a href="logout.jsp" class="nav-link">Logout</a>
             </div>

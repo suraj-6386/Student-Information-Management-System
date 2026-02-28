@@ -2,10 +2,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <%
-    // Session Check - Fixed
-    if (session == null || session.isNew() || 
-        session.getAttribute("userId") == null || 
-        session.getAttribute("userType") == null) {
+    if (session == null || session.isNew() || session.getAttribute("userId") == null || session.getAttribute("userType") == null) {
         response.sendRedirect("login.jsp");
         return;
     }
@@ -27,53 +24,57 @@
             
             int studentId = Integer.parseInt(request.getParameter("student_id"));
             int subjectId = Integer.parseInt(request.getParameter("subject_id"));
-            int theoryMarks = Integer.parseInt(request.getParameter("theory_marks"));
-            int practicalMarks = Integer.parseInt(request.getParameter("practical_marks"));
-            int assignmentMarks = Integer.parseInt(request.getParameter("assignment_marks"));
             
-            // Validate marks
-            if (theoryMarks < 0 || theoryMarks > 100 || practicalMarks < 0 || practicalMarks > 100 || 
-                assignmentMarks < 0 || assignmentMarks > 100) {
-                throw new Exception("All marks must be between 0 and 100");
+            int internal1 = Integer.parseInt(request.getParameter("internal1"));
+            int internal2 = Integer.parseInt(request.getParameter("internal2"));
+            int external = Integer.parseInt(request.getParameter("external"));
+            
+            if (internal1 < 0 || internal1 > 20) {
+                throw new Exception("First Internal must be between 0-20");
+            }
+            if (internal2 < 0 || internal2 > 20) {
+                throw new Exception("Second Internal must be between 0-20");
+            }
+            if (external < 0 || external > 60) {
+                throw new Exception("End Semester must be between 0-60");
             }
             
-            int totalMarks = theoryMarks + practicalMarks + assignmentMarks;
+            int totalMarks = internal1 + internal2 + external;
             String grade;
-            if (totalMarks >= 270) grade = "A";
-            else if (totalMarks >= 240) grade = "B";
-            else if (totalMarks >= 180) grade = "C";
-            else if (totalMarks >= 150) grade = "D";
+            if (totalMarks >= 90) grade = "A+";
+            else if (totalMarks >= 80) grade = "A";
+            else if (totalMarks >= 70) grade = "B+";
+            else if (totalMarks >= 60) grade = "B";
+            else if (totalMarks >= 50) grade = "C";
+            else if (totalMarks >= 40) grade = "D";
             else grade = "F";
             
-            String sql = "INSERT INTO marks (student_id, subject_id, teacher_id, theory_marks, practical_marks, assignment_marks, total_marks, grade, evaluated_at) " +
+            String sql = "INSERT INTO marks (student_id, subject_id, teacher_id, internal1_marks, internal2_marks, external_marks, total_marks, grade, evaluated_at) " +
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW()) " +
-                        "ON DUPLICATE KEY UPDATE theory_marks = ?, practical_marks = ?, assignment_marks = ?, total_marks = ?, grade = ?, updated_at = NOW(), teacher_id = ?";
+                        "ON DUPLICATE KEY UPDATE internal1_marks = ?, internal2_marks = ?, external_marks = ?, total_marks = ?, grade = ?, updated_at = NOW(), teacher_id = ?";
             
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, studentId);
             stmt.setInt(2, subjectId);
             stmt.setInt(3, teacherId);
-            stmt.setInt(4, theoryMarks);
-            stmt.setInt(5, practicalMarks);
-            stmt.setInt(6, assignmentMarks);
+            stmt.setInt(4, internal1);
+            stmt.setInt(5, internal2);
+            stmt.setInt(6, external);
             stmt.setInt(7, totalMarks);
             stmt.setString(8, grade);
-            stmt.setInt(9, theoryMarks);
-            stmt.setInt(10, practicalMarks);
-            stmt.setInt(11, assignmentMarks);
+            stmt.setInt(9, internal1);
+            stmt.setInt(10, internal2);
+            stmt.setInt(11, external);
             stmt.setInt(12, totalMarks);
             stmt.setString(13, grade);
             stmt.setInt(14, teacherId);
             
             stmt.executeUpdate();
-            message = "✓ Marks saved successfully! (Grade: " + grade + ", Total: " + totalMarks + "/300)";
+            message = "Marks saved! Total: " + totalMarks + "/100 | Grade: " + grade;
             messageType = "success";
             
             stmt.close();
             conn.close();
-        } catch (NumberFormatException e) {
-            message = "Error: Invalid input. Marks must be numbers between 0-100";
-            messageType = "danger";
         } catch (Exception e) {
             message = "Error: " + e.getMessage();
             messageType = "danger";
@@ -89,127 +90,26 @@
     <title>Enter Marks - SIMS</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .marks-form-section {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .marks-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 1.5rem;
-            margin: 1.5rem 0;
-        }
-        
-        .mark-input-group {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 6px;
-            border-left: 4px solid #3498db;
-        }
-        
-        .mark-input-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #2c3e50;
-            font-size: 0.9rem;
-        }
-        
-        .mark-input-group input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #ecf0f1;
-            border-radius: 4px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-        
-        .mark-input-group input:focus {
-            outline: none;
-            border-color: #3498db;
-            background: white;
-        }
-        
-        .marks-summary {
-            background: #ecf0f1;
-            padding: 1.5rem;
-            border-radius: 6px;
-            margin: 1.5rem 0;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-        
-        .summary-item {
-            text-align: center;
-        }
-        
-        .summary-label {
-            font-size: 0.85rem;
-            color: #7f8c8d;
-            margin-bottom: 0.5rem;
-        }
-        
-        .summary-value {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-        
-        .grade-excellent {
-            color: #27ae60;
-        }
-        
-        .grade-good {
-            color: #2980b9;
-        }
-        
-        .grade-average {
-            color: #f39c12;
-        }
-        
-        .grade-poor {
-            color: #e74c3c;
-        }
-        
-        .step-indicator {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            justify-content: space-between;
-        }
-        
-        .step {
-            flex: 1;
-            text-align: center;
-            padding: 1rem;
-            background: #ecf0f1;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-        
-        .step.active {
-            background: #3498db;
-            color: white;
-        }
+        .marks-container { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        .form-section { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+        .form-group select, .form-group input { width: 100%; padding: 0.75rem; border: 2px solid #ecf0f1; border-radius: 4px; font-size: 1rem; }
+        .marks-input-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin: 1.5rem 0; }
+        .mark-input { background: #f8f9fa; padding: 1.5rem; border-radius: 8px; text-align: center; }
+        .mark-input input { width: 80px; padding: 0.75rem; border: 2px solid #ddd; border-radius: 4px; font-size: 1.25rem; text-align: center; }
+        .mark-input .max-marks { font-size: 0.85rem; color: #7f8c8d; margin-top: 0.5rem; }
+        .total-display { background: #3498db; color: white; padding: 1.5rem; border-radius: 8px; text-align: center; margin-top: 1.5rem; }
+        .total-display .total-value { font-size: 2.5rem; font-weight: bold; }
+        .student-info { background: #e8f5e9; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; display: none; }
     </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-brand">
-                <h1>SIMS - Teacher Portal</h1>
-                <p>Enter Marks</p>
-            </div>
+            <div class="nav-brand"><h1>SIMS</h1><p>Teacher Portal</p></div>
             <div class="nav-links">
                 <a href="teacher-dashboard.jsp" class="nav-link">Dashboard</a>
-                <a href="teacher-courses.jsp" class="nav-link">My Courses</a>
-                <a href="teacher-attendance.jsp" class="nav-link">Attendance</a>
                 <a href="teacher-marks.jsp" class="nav-link active">Marks</a>
                 <a href="logout.jsp" class="nav-link">Logout</a>
             </div>
@@ -217,214 +117,132 @@
     </nav>
 
     <div class="dashboard-container">
-        <div class="page-header">
-            <h2>📊 Enter Student Marks</h2>
-            <p>Select course and student, then enter marks</p>
-        </div>
-
-        <% if (!message.isEmpty()) { %>
-            <div class="alert alert-<%= messageType %>">
-                <%= message %>
-            </div>
-        <% } %>
-
-        <!-- Step Indicator -->
-        <div class="step-indicator">
-            <div class="step active">① Select Course</div>
-            <div class="step">② Select Student</div>
-            <div class="step">③ Enter Marks</div>
-            <div class="step">④ Submit</div>
-        </div>
-
-        <!-- Course and Student Selection -->
-        <div class="marks-form-section">
-            <h3>Step 1-2: Select Course and Student</h3>
-            <form id="marksForm" method="POST" action="teacher-marks.jsp">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                    <div class="form-group">
-                        <label for="course_id">Select Your Course *</label>
-                        <select id="course_id" name="course_id" required onchange="updateStudentList()">
-                            <option value="">-- Select Course --</option>
-                            <%
-                                try {
-                                    Class.forName("com.mysql.jdbc.Driver");
-                                    Connection conn = DriverManager.getConnection(
-                                        "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
-                                    
-                                    String sql = "SELECT DISTINCT s.subject_id, s.subject_code, s.subject_name, c.course_name " +
-                                                "FROM subjects s " +
-                                                "JOIN courses c ON s.course_id = c.course_id " +
-                                                "JOIN subject_teacher st ON s.subject_id = st.subject_id " +
-                                                "WHERE st.teacher_id = ? " +
-                                                "ORDER BY c.course_name, s.subject_code ASC";
-                                    
-                                    PreparedStatement stmt = conn.prepareStatement(sql);
-                                    stmt.setInt(1, teacherId);
-                                    ResultSet rs = stmt.executeQuery();
-                                    
-                                    while (rs.next()) {
-                            %>
-                            <option value="<%= rs.getInt("course_id") %>">
-                                <%= rs.getString("course_code") %> - <%= rs.getString("course_name") %>
-                            </option>
-                            <%
-                                    }
-                                    conn.close();
-                                } catch (Exception e) {
-                                    out.println("<option>Error loading courses</option>");
-                                }
-                            %>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="student_id">Select Student *</label>
-                        <select id="student_id" name="student_id" required>
-                            <option value="">-- Select Course First --</option>
-                        </select>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <!-- Marks Entry Section -->
-        <div class="marks-form-section">
-            <h3>Step 3-4: Enter Marks and Submit</h3>
+        <div class="marks-container">
+            <h2>📊 Enter Marks</h2>
+            <p>Select subject and student, then enter marks</p>
             
-            <div class="marks-grid">
-                <div class="mark-input-group">
-                    <label for="theory_marks">Theory Marks</label>
-                    <input type="number" id="theory_marks" name="theory_marks" min="0" max="100" value="0" 
-                           form="marksForm" onchange="calculateTotal()" oninput="calculateTotal()">
-                    <small style="color: #7f8c8d;">Out of 100</small>
-                </div>
-
-                <div class="mark-input-group">
-                    <label for="practical_marks">Practical Marks</label>
-                    <input type="number" id="practical_marks" name="practical_marks" min="0" max="100" value="0" 
-                           form="marksForm" onchange="calculateTotal()" oninput="calculateTotal()">
-                    <small style="color: #7f8c8d;">Out of 100</small>
-                </div>
-
-                <div class="mark-input-group">
-                    <label for="assignment_marks">Assignment Marks</label>
-                    <input type="number" id="final_exam" name="final_exam" min="0" max="100" value="0" 
-                           form="marksForm" onchange="calculateTotal()" oninput="calculateTotal()">
-                    <small style="color: #7f8c8d;">Out of 100</small>
-                </div>
-            </div>
-
-            <!-- Summary and Grade -->
-            <div class="marks-summary">
-                <div class="summary-item">
-                    <div class="summary-label">Total Marks</div>
-                    <div class="summary-value" id="totalMarks">0 / 300</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-label">Grade</div>
-                    <div class="summary-value" id="gradeDisplay">-</div>
+            <% if (!message.isEmpty()) { %>
+                <div class="alert alert-<%= messageType %>" style="margin-bottom: 1.5rem;"><%= message %></div>
+            <% } %>
+            
+            <div class="form-section">
+                <h3>Step 1: Select Subject</h3>
+                <div class="form-group">
+                    <label for="subject_id">Subject *</label>
+                    <select id="subject_id" onchange="loadStudents()">
+                        <option value="">-- Select Subject --</option>
+                        <%
+                            try {
+                                Class.forName("com.mysql.jdbc.Driver");
+                                Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
+                                String sql = "SELECT s.subject_id, s.subject_code, s.subject_name, c.course_name, s.semester " +
+                                            "FROM subjects s JOIN courses c ON s.course_id = c.course_id " +
+                                            "WHERE s.teacher_id = ? ORDER BY c.course_name, s.semester";
+                                PreparedStatement stmt = conn.prepareStatement(sql);
+                                stmt.setInt(1, teacherId);
+                                ResultSet rs = stmt.executeQuery();
+                                while (rs.next()) {
+                        %>
+                        <option value="<%= rs.getInt("subject_id") %>">
+                            <%= rs.getString("subject_code") %> - <%= rs.getString("subject_name") %> (<%= rs.getString("course_name") %>, Sem <%= rs.getInt("semester") %>)
+                        </option>
+                        <% }
+                                conn.close();
+                            } catch (Exception e) { out.println("<option>Error</option>"); }
+                        %>
+                    </select>
                 </div>
             </div>
-
-            <!-- Submit Button -->
-            <button type="submit" form="marksForm" class="btn btn-primary" style="width: 100%; padding: 0.8rem; font-size: 1rem;">
-                ✓ Save Marks
-            </button>
-        </div>
-
-        <div style="margin-top: 2rem;">
-            <a href="teacher-dashboard.jsp" class="btn btn-secondary">← Back to Dashboard</a>
+            
+            <div id="studentSection" class="form-section" style="display:none;">
+                <h3>Step 2: Select Student</h3>
+                <div class="form-group">
+                    <label for="student_id">Student *</label>
+                    <select id="student_id" onchange="showMarksForm()">
+                        <option value="">-- Select Student --</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="marksSection" class="form-section" style="display:none;">
+                <h3>Step 3: Enter Marks</h3>
+                <form method="POST">
+                    <input type="hidden" name="subject_id" id="form_subject_id">
+                    <input type="hidden" name="student_id" id="form_student_id">
+                    
+                    <div class="marks-input-grid">
+                        <div class="mark-input">
+                            <label>First Internal</label>
+                            <input type="number" name="internal1" id="internal1" min="0" max="20" value="0" oninput="calculateTotal()">
+                            <div class="max-marks">Out of 20</div>
+                        </div>
+                        <div class="mark-input">
+                            <label>Second Internal</label>
+                            <input type="number" name="internal2" id="internal2" min="0" max="20" value="0" oninput="calculateTotal()">
+                            <div class="max-marks">Out of 20</div>
+                        </div>
+                        <div class="mark-input">
+                            <label>End Semester</label>
+                            <input type="number" name="external" id="external" min="0" max="60" value="0" oninput="calculateTotal()">
+                            <div class="max-marks">Out of 60</div>
+                        </div>
+                    </div>
+                    
+                    <div class="total-display">
+                        <div class="total-label">Total Marks</div>
+                        <div class="total-value"><span id="totalMarks">0</span>/100</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width:100%; margin-top:1rem;">Save Marks</button>
+                </form>
+            </div>
+            
+            <div style="margin-top: 2rem;">
+                <a href="teacher-dashboard.jsp" class="btn btn-secondary">← Back to Dashboard</a>
+            </div>
         </div>
     </div>
 
     <footer class="footer">
-        <div class="footer-bottom">
-            <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
-        </div>
+        <div class="footer-bottom"><p>&copy; 2026 SIMS. All rights reserved.</p></div>
     </footer>
 
     <script>
-        function updateStudentList() {
-            const courseId = document.getElementById('course_id').value;
+        function loadStudents() {
+            const subjectId = document.getElementById('subject_id').value;
             const studentSelect = document.getElementById('student_id');
+            document.getElementById('studentSection').style.display = 'none';
+            document.getElementById('marksSection').style.display = 'none';
+            if (!subjectId) return;
             
-            if (!courseId) {
-                studentSelect.innerHTML = '<option value="">-- Select Course First --</option>';
-                return;
-            }
-            
-            // Create option to load students
-            studentSelect.innerHTML = '<option value="">Loading students...</option>';
-            
-            fetch('get-course-students.jsp?course_id=' + courseId)
+            fetch('get-subject-students.jsp?subject_id=' + subjectId)
                 .then(response => response.json())
                 .then(data => {
-                    populateStudentSelect(data);
-                })
-                .catch(error => {
-                    studentSelect.innerHTML = '<option value="">Error loading students</option>';
-                    console.error('Error:', error);
+                    studentSelect.innerHTML = '<option value="">-- Select Student --</option>';
+                    data.forEach(student => {
+                        const option = document.createElement('option');
+                        option.value = student.student_id;
+                        option.textContent = (student.roll_number || 'N/A') + ' - ' + student.full_name;
+                        studentSelect.appendChild(option);
+                    });
+                    document.getElementById('studentSection').style.display = 'block';
                 });
         }
         
-        function populateStudentSelect(students) {
-            const select = document.getElementById('student_id');
-            select.innerHTML = '<option value="">-- Select Student --</option>';
-            
-            if (students.length === 0) {
-                select.innerHTML = '<option value="">No students in this course</option>';
-                return;
-            }
-            
-            students.forEach(student => {
-                const option = document.createElement('option');
-                option.value = student.id;
-                let displayText = student.full_name;
-                if (student.roll_number) {
-                    displayText += ' (' + student.roll_number + ')';
-                }
-                option.textContent = displayText;
-                select.appendChild(option);
-            });
+        function showMarksForm() {
+            const studentId = document.getElementById('student_id').value;
+            if (!studentId) { document.getElementById('marksSection').style.display = 'none'; return; }
+            document.getElementById('form_subject_id').value = document.getElementById('subject_id').value;
+            document.getElementById('form_student_id').value = studentId;
+            document.getElementById('marksSection').style.display = 'block';
         }
         
         function calculateTotal() {
-            const theoryMarks = parseInt(document.getElementById('theory_marks').value) || 0;
-            const practicalMarks = parseInt(document.getElementById('practical_marks').value) || 0;
-            const assignmentMarks = parseInt(document.getElementById('assignment_marks').value) || 0;
-            
-            const total = theoryMarks + practicalMarks + assignmentMarks;
-            document.getElementById('totalMarks').textContent = total + ' / 300';
-            
-            // Calculate and display grade
-            const percentage = (total / 300) * 100;
-            let grade = '-';
-            let gradeClass = '';
-            
-            if (percentage >= 80) {
-                grade = 'A';
-                gradeClass = 'grade-excellent';
-            } else if (percentage >= 70) {
-                grade = 'B';
-                gradeClass = 'grade-good';
-            } else if (percentage >= 60) {
-                grade = 'C';
-                gradeClass = 'grade-average';
-            } else if (percentage >= 50) {
-                grade = 'D';
-                gradeClass = 'grade-poor';
-            } else if (total > 0) {
-                grade = 'F';
-                gradeClass = 'grade-poor';
-            }
-            
-            const gradeDisplay = document.getElementById('gradeDisplay');
-            gradeDisplay.textContent = grade;
-            gradeDisplay.className = 'summary-value ' + gradeClass;
+            const internal1 = parseInt(document.getElementById('internal1').value) || 0;
+            const internal2 = parseInt(document.getElementById('internal2').value) || 0;
+            const external = parseInt(document.getElementById('external').value) || 0;
+            document.getElementById('totalMarks').textContent = internal1 + internal2 + external;
         }
-        
-        // Initial calculation on page load
-        calculateTotal();
     </script>
 </body>
 </html>

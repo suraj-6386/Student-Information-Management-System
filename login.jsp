@@ -13,29 +13,48 @@
         
         if (email != null && password != null && !email.isEmpty() && !password.isEmpty()) {
             try {
-               Class.forName("com.mysql.cj.jdbc.Driver");
-
-Connection conn = DriverManager.getConnection(
-    "jdbc:mysql://localhost:3306/student_info_system?useSSL=false&serverTimezone=UTC",
-    "root",
-    "15056324"
-);
-                // Hash password
+                Class.forName("com.mysql.jdbc.Driver");
+                Connection conn = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/student_info_system?useSSL=false&serverTimezone=UTC",
+                    "root",
+                    "15056324"
+                );
+                
+                // Hash password using SHA-256
                 MessageDigest md = MessageDigest.getInstance("SHA-256");
-byte[] hashedPassword = md.digest(password.getBytes("UTF-8"));
-String hashedPasswordStr = Base64.getEncoder().encodeToString(hashedPassword);
+                byte[] hashedPassword = md.digest(password.getBytes("UTF-8"));
+                String hashedPasswordStr = Base64.getEncoder().encodeToString(hashedPassword);
                 
-                // Query user
-                String sql =
-"SELECT user_id, full_name, user_type, status FROM users WHERE email = ? AND password_hash = ?";
-                PreparedStatement stmt = conn.prepareStatement(sql);
-                stmt.setString(1, email);
-                stmt.setString(2, hashedPasswordStr);
+                // Check admin first (by email)
+                PreparedStatement adminStmt = conn.prepareStatement(
+                    "SELECT admin_id, full_name FROM admin WHERE email = ? AND password_hash = ?");
+                adminStmt.setString(1, email);
+                adminStmt.setString(2, hashedPasswordStr);
+                ResultSet adminRS = adminStmt.executeQuery();
                 
-                ResultSet rs = stmt.executeQuery();
+                if (adminRS.next()) {
+                    session.setAttribute("userId", adminRS.getInt("admin_id"));
+                    session.setAttribute("userName", adminRS.getString("full_name"));
+                    session.setAttribute("userType", "admin");
+                    session.setAttribute("userEmail", email);
+                    response.sendRedirect("admin-dashboard.jsp");
+                    adminRS.close();
+                    adminStmt.close();
+                    conn.close();
+                    return;
+                }
+                adminRS.close();
+                adminStmt.close();
                 
-                if (rs.next()) {
-                    String status = rs.getString("status");
+                // Check student
+                PreparedStatement studentStmt = conn.prepareStatement(
+                    "SELECT student_id, user_id, full_name, status FROM student WHERE email = ? AND password_hash = ?");
+                studentStmt.setString(1, email);
+                studentStmt.setString(2, hashedPasswordStr);
+                ResultSet studentRS = studentStmt.executeQuery();
+                
+                if (studentRS.next()) {
+                    String status = studentRS.getString("status");
                     
                     if ("rejected".equals(status)) {
                         message = "Your registration has been rejected. Please contact admin.";
@@ -43,32 +62,58 @@ String hashedPasswordStr = Base64.getEncoder().encodeToString(hashedPassword);
                     } else if ("pending".equals(status)) {
                         message = "Your registration is still pending. Please wait for admin approval.";
                         messageType = "warning";
-                    } else if ("approved".equals(status)) {
-                        // Set session
-                        session.setAttribute("userId", rs.getInt("user_id"));
-                        session.setAttribute("userName", rs.getString("full_name"));
-                        session.setAttribute("userType", rs.getString("user_type"));
+                    } else if ("approved".equals(status) || "active".equals(status)) {
+                        session.setAttribute("userId", studentRS.getInt("student_id"));
+                        session.setAttribute("userIdCode", studentRS.getString("user_id"));
+                        session.setAttribute("userName", studentRS.getString("full_name"));
+                        session.setAttribute("userType", "student");
                         session.setAttribute("userEmail", email);
-                        
-                        String userType = rs.getString("user_type");
-                        
-                        // Redirect based on user type
-                        if ("admin".equals(userType)) {
-                            response.sendRedirect("admin-dashboard.jsp");
-                        } else if ("student".equals(userType)) {
-                            response.sendRedirect("student-dashboard.jsp");
-                        } else if ("teacher".equals(userType)) {
-                            response.sendRedirect("teacher-dashboard.jsp");
-                        }
+                        response.sendRedirect("student-dashboard.jsp");
+                        studentRS.close();
+                        studentStmt.close();
+                        conn.close();
                         return;
                     }
-                } else {
-                    message = "Invalid email or password!";
-                    messageType = "danger";
                 }
+                studentRS.close();
+                studentStmt.close();
                 
-                rs.close();
-                stmt.close();
+                // Check teacher
+                PreparedStatement teacherStmt = conn.prepareStatement(
+                    "SELECT teacher_id, user_id, full_name, status FROM teacher WHERE email = ? AND password_hash = ?");
+                teacherStmt.setString(1, email);
+                teacherStmt.setString(2, hashedPasswordStr);
+                ResultSet teacherRS = teacherStmt.executeQuery();
+                
+                if (teacherRS.next()) {
+                    String status = teacherRS.getString("status");
+                    
+                    if ("rejected".equals(status)) {
+                        message = "Your registration has been rejected. Please contact admin.";
+                        messageType = "danger";
+                    } else if ("pending".equals(status)) {
+                        message = "Your registration is still pending. Please wait for admin approval.";
+                        messageType = "warning";
+                    } else if ("approved".equals(status) || "active".equals(status)) {
+                        session.setAttribute("userId", teacherRS.getInt("teacher_id"));
+                        session.setAttribute("userIdCode", teacherRS.getString("user_id"));
+                        session.setAttribute("userName", teacherRS.getString("full_name"));
+                        session.setAttribute("userType", "teacher");
+                        session.setAttribute("userEmail", email);
+                        response.sendRedirect("teacher-dashboard.jsp");
+                        teacherRS.close();
+                        teacherStmt.close();
+                        conn.close();
+                        return;
+                    }
+                }
+                teacherRS.close();
+                teacherStmt.close();
+                
+                // If we get here, login failed
+                message = "Invalid email/username or password!";
+                messageType = "danger";
+                
                 conn.close();
             } catch (Exception e) {
                 message = "Error during login: " + e.getMessage();
@@ -112,27 +157,18 @@ String hashedPasswordStr = Base64.getEncoder().encodeToString(hashedPassword);
 
             <% if (!message.isEmpty()) { %>
                 <div class="alert alert-<%= messageType %>">
-                    <span class="alert-icon">
-                        <% if("success".equals(messageType)) { %>✓<% } else if("danger".equals(messageType)) { %>✕<% } else { %>⚠<% } %>
-                    </span>
                     <%= message %>
                 </div>
             <% } %>
 
             <form method="POST" action="login.jsp" class="login-form">
                 <div class="form-group">
-                    <label for="email">
-                        <span class="label-icon">📧</span>
-                        <span>Email Address</span>
-                    </label>
-                    <input type="email" id="email" name="email" placeholder="Enter your registered email" required>
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="Enter your email address" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="password">
-                        <span class="label-icon">🔑</span>
-                        <span>Password</span>
-                    </label>
+                    <label for="password">Password</label>
                     <input type="password" id="password" name="password" placeholder="Enter your password" required>
                 </div>
 

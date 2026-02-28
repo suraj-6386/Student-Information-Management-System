@@ -2,10 +2,16 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <%
-    if (session.getAttribute("userId") == null || !"student".equals(session.getAttribute("userType"))) {
+    if (session == null || session.isNew() || session.getAttribute("userId") == null || session.getAttribute("userType") == null) {
         response.sendRedirect("login.jsp");
         return;
     }
+    
+    if (!"student".equals(session.getAttribute("userType"))) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+    
     int userId = (Integer) session.getAttribute("userId");
 %>
 
@@ -20,31 +26,29 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-brand">
-                <h1>SIMS</h1>
-                <p>Student Portal</p>
-            </div>
+            <div class="nav-brand"><h1>SIMS</h1><p>Student Portal</p></div>
             <div class="nav-links">
                 <a href="student-dashboard.jsp" class="nav-link">Dashboard</a>
-                <a href="student-courses.jsp" class="nav-link active">Courses</a>
+                <a href="student-courses.jsp" class="nav-link active">My Courses</a>
                 <a href="student-attendance.jsp" class="nav-link">Attendance</a>
+                <a href="student-marks.jsp" class="nav-link">Marks</a>
                 <a href="logout.jsp" class="nav-link">Logout</a>
             </div>
         </div>
     </nav>
 
     <div class="dashboard-container">
-        <h2>My Enrolled Courses</h2>
-
+        <h2>📚 My Enrolled Subjects</h2>
+        
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
-                        <th>Course ID</th>
-                        <th>Course Name</th>
-                        <th>Subject</th>
-                        <th>Credits</th>
+                        <th>Subject Code</th>
+                        <th>Subject Name</th>
+                        <th>Course</th>
                         <th>Semester</th>
+                        <th>Credits</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -52,53 +56,49 @@
                     <%
                         try {
                             Class.forName("com.mysql.jdbc.Driver");
-                            Connection conn = DriverManager.getConnection(
-                                "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
+                            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                             
-                            String sql = "SELECT s.subject_id, s.subject_code, s.subject_name, s.credits, s.semester, c.course_name, 'Enrolled' as status " +
-                                         "FROM student_subject_enrollment e " +
-                                         "JOIN subjects s ON e.subject_id = s.subject_id " +
-                                         "JOIN courses c ON s.course_id = c.course_id " +
-                                         "WHERE e.student_id = ?";
+                            String sql = "SELECT s.subject_code, s.subject_name, c.course_name, s.semester, s.credits, se.status " +
+                                        "FROM subject_enrollment se " +
+                                        "JOIN subjects s ON se.subject_id = s.subject_id " +
+                                        "JOIN courses c ON s.course_id = c.course_id " +
+                                        "WHERE se.student_id = ? ORDER BY s.semester, s.subject_code";
                             PreparedStatement stmt = conn.prepareStatement(sql);
                             stmt.setInt(1, userId);
                             ResultSet rs = stmt.executeQuery();
                             
                             if (!rs.isBeforeFirst()) {
-                                out.println("<tr><td colspan='6' style='text-align: center; padding: 2rem;'>No courses enrolled</td></tr>");
+                                out.println("<tr><td colspan='6' style='text-align:center;'>No subjects enrolled</td></tr>");
                             }
                             
                             while (rs.next()) {
                     %>
                     <tr>
-                        <td><%= rs.getInt("subject_id") %></td>
                         <td><%= rs.getString("subject_code") %></td>
                         <td><%= rs.getString("subject_name") %></td>
                         <td><%= rs.getString("course_name") %></td>
-                        <td><%= rs.getInt("credits") %></td>
                         <td><%= rs.getInt("semester") %></td>
-                        <td><span style="background: #d1fae5; color: #065f46; padding: 0.25rem 0.75rem; border-radius: 4px;">Enrolled</span></td>
+                        <td><%= rs.getInt("credits") %></td>
+                        <td><span style="background:#d1fae5;color:#065f46;padding:0.25rem 0.75rem;border-radius:4px;"><%= rs.getString("status") %></span></td>
                     </tr>
                     <%
                             }
                             conn.close();
                         } catch (Exception e) {
-                            out.println("<tr><td colspan='6' style='color: red;'>Error loading courses: " + e.getMessage() + "</td></tr>");
+                            out.println("<tr><td colspan='6' style='color:red;'>Error: " + e.getMessage() + "</td></tr>");
                         }
                     %>
                 </tbody>
             </table>
         </div>
-
-        <div style="margin-top: 2rem;">
+        
+        <div style="margin-top:2rem;">
             <a href="student-dashboard.jsp" class="btn btn-secondary">← Back to Dashboard</a>
         </div>
     </div>
 
     <footer class="footer">
-        <div class="footer-bottom">
-            <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
-        </div>
+        <div class="footer-bottom"><p>&copy; 2026 SIMS. All rights reserved.</p></div>
     </footer>
 </body>
 </html>

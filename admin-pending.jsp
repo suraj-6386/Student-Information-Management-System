@@ -9,32 +9,47 @@
     }
     
     String action = request.getParameter("action");
+    String userType = request.getParameter("user_type");
     String userId = request.getParameter("user_id");
     String message = "";
     String messageType = "";
     
-    if (action != null && userId != null) {
+    if (action != null && userId != null && userType != null) {
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection conn = DriverManager.getConnection(
                 "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
             
-            String status = "approve".equals(action) ? "approved" : "rejected";
-            String sql = "UPDATE users SET status = ? WHERE user_id = ? AND status = 'pending'";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setString(1, status);
-            stmt.setInt(2, Integer.parseInt(userId));
+            String status = "approve".equals(action) ? "active" : "rejected";
+            String sql = "";
+            PreparedStatement stmt;
             
-            int rows = stmt.executeUpdate();
-            if (rows > 0) {
-                message = "Registration " + ("approved".equals(status) ? "approved" : "rejected") + " successfully!";
-                messageType = "success";
+            if ("student".equals(userType)) {
+                sql = "UPDATE student SET status = ? WHERE student_id = ? AND status = 'pending'";
+                stmt = conn.prepareStatement(sql);
+                stmt.setString(1, status);
+                stmt.setInt(2, Integer.parseInt(userId));
+            } else if ("teacher".equals(userType)) {
+                sql = "UPDATE teacher SET status = ? WHERE teacher_id = ? AND status = 'pending'";
+                stmt = conn.prepareStatement(sql);
+                stmt.setString(1, status);
+                stmt.setInt(2, Integer.parseInt(userId));
             } else {
-                message = "User not found or already processed!";
-                messageType = "danger";
+                stmt = null;
             }
             
-            stmt.close();
+            if (stmt != null) {
+                int rows = stmt.executeUpdate();
+                if (rows > 0) {
+                    message = "Registration " + ("approve".equals(action) ? "approved" : "rejected") + " successfully!";
+                    messageType = "success";
+                } else {
+                    message = "User not found or already processed!";
+                    messageType = "danger";
+                }
+                stmt.close();
+            }
+            
             conn.close();
         } catch (Exception e) {
             message = "Error: " + e.getMessage();
@@ -96,27 +111,23 @@
                             Connection conn = DriverManager.getConnection(
                                 "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                             
-                            String sql = "SELECT user_id, full_name, email, phone, user_type, status FROM users WHERE status = 'pending' ORDER BY user_id DESC";
+                            // Get pending students
+                            String sql = "SELECT student_id as id, full_name, email, phone, 'student' as user_type, status FROM student WHERE status = 'pending'";
                             Statement stmt = conn.createStatement();
                             ResultSet rs = stmt.executeQuery(sql);
                             
-                            if (!rs.isBeforeFirst()) {
-                                out.println("<tr><td colspan='7' style='text-align: center; padding: 2rem;'>No pending registrations</td></tr>");
-                            }
-                            
+                            boolean hasPending = false;
                             while (rs.next()) {
+                                hasPending = true;
                     %>
                     <tr>
-                        <td><%= rs.getInt("user_id") %></td>
+                        <td><%= rs.getInt("id") %></td>
                         <td><%= rs.getString("full_name") %></td>
                         <td><%= rs.getString("email") %></td>
-                        <td><%= rs.getString("phone") %></td>
+                        <td><%= rs.getString("phone") != null ? rs.getString("phone") : "N/A" %></td>
                         <td>
-                            <% String type = rs.getString("user_type");
-                               String color = "student".equals(type) ? "blue" : "green";
-                            %>
-                            <span style="background: <%= color %>; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; text-transform: capitalize;">
-                                <%= type %>
+                            <span style="background: blue; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; text-transform: capitalize;">
+                                Student
                             </span>
                         </td>
                         <td>
@@ -125,12 +136,45 @@
                             </span>
                         </td>
                         <td>
-                            <a href="admin-pending.jsp?action=approve&user_id=<%= rs.getInt("user_id") %>" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin-right: 0.25rem;">Approve</a>
-                            <a href="admin-pending.jsp?action=reject&user_id=<%= rs.getInt("user_id") %>" class="btn btn-danger" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Reject</a>
+                            <a href="admin-pending.jsp?action=approve&user_type=student&user_id=<%= rs.getInt("id") %>" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin-right: 0.25rem;">Approve</a>
+                            <a href="admin-pending.jsp?action=reject&user_type=student&user_id=<%= rs.getInt("id") %>" class="btn btn-danger" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Reject</a>
                         </td>
                     </tr>
                     <%
                             }
+                            
+                            // Get pending teachers
+                            rs = stmt.executeQuery("SELECT teacher_id as id, full_name, email, phone, 'teacher' as user_type, status FROM teacher WHERE status = 'pending'");
+                            while (rs.next()) {
+                                hasPending = true;
+                    %>
+                    <tr>
+                        <td><%= rs.getInt("id") %></td>
+                        <td><%= rs.getString("full_name") %></td>
+                        <td><%= rs.getString("email") %></td>
+                        <td><%= rs.getString("phone") != null ? rs.getString("phone") : "N/A" %></td>
+                        <td>
+                            <span style="background: green; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; text-transform: capitalize;">
+                                Teacher
+                            </span>
+                        </td>
+                        <td>
+                            <span style="background: #fef3c7; color: #78350f; padding: 0.25rem 0.75rem; border-radius: 4px;">
+                                <%= rs.getString("status") %>
+                            </span>
+                        </td>
+                        <td>
+                            <a href="admin-pending.jsp?action=approve&user_type=teacher&user_id=<%= rs.getInt("id") %>" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin-right: 0.25rem;">Approve</a>
+                            <a href="admin-pending.jsp?action=reject&user_type=teacher&user_id=<%= rs.getInt("id") %>" class="btn btn-danger" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Reject</a>
+                        </td>
+                    </tr>
+                    <%
+                            }
+                            
+                            if (!hasPending) {
+                                out.println("<tr><td colspan='7' style='text-align: center; padding: 2rem;'>No pending registrations</td></tr>");
+                            }
+                            
                             rs.close();
                             stmt.close();
                             conn.close();
