@@ -59,10 +59,7 @@
                     if ("rejected".equals(status)) {
                         message = "Your registration has been rejected. Please contact admin.";
                         messageType = "danger";
-                    } else if ("pending".equals(status)) {
-                        message = "Your registration is still pending. Please wait for admin approval.";
-                        messageType = "warning";
-                    } else if ("approved".equals(status) || "active".equals(status)) {
+                    } else if ("active".equals(status) || "pending".equals(status) || "approved".equals(status)) {
                         session.setAttribute("userId", studentRS.getInt("student_id"));
                         session.setAttribute("userIdCode", studentRS.getString("user_id"));
                         session.setAttribute("userName", studentRS.getString("full_name"));
@@ -91,10 +88,7 @@
                     if ("rejected".equals(status)) {
                         message = "Your registration has been rejected. Please contact admin.";
                         messageType = "danger";
-                    } else if ("pending".equals(status)) {
-                        message = "Your registration is still pending. Please wait for admin approval.";
-                        messageType = "warning";
-                    } else if ("approved".equals(status) || "active".equals(status)) {
+                    } else if ("active".equals(status) || "pending".equals(status) || "approved".equals(status)) {
                         session.setAttribute("userId", teacherRS.getInt("teacher_id"));
                         session.setAttribute("userIdCode", teacherRS.getString("user_id"));
                         session.setAttribute("userName", teacherRS.getString("full_name"));

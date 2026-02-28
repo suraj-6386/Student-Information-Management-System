@@ -67,7 +67,7 @@
                                       "JOIN subject_enrollment se ON st.student_id = se.student_id " +
                                       "JOIN subjects s ON se.subject_id = s.subject_id " +
                                       "JOIN courses c ON st.course_id = c.course_id " +
-                                      "WHERE s.teacher_id = ? AND s.subject_id = ? AND st.status = 'active' " +
+                                      "WHERE s.teacher_id = ? AND s.subject_id = ? AND st.status = 'approved' " +
                                       "ORDER BY st.full_name";
                                 stmt = conn.prepareStatement(sql);
                                 stmt.setInt(1, teacherId);
@@ -78,7 +78,7 @@
                                       "JOIN subject_enrollment se ON st.student_id = se.student_id " +
                                       "JOIN subjects s ON se.subject_id = s.subject_id " +
                                       "JOIN courses c ON st.course_id = c.course_id " +
-                                      "WHERE s.teacher_id = ? AND st.status = 'active' " +
+                                      "WHERE s.teacher_id = ? AND st.status = 'approved' " +
                                       "ORDER BY st.full_name";
                                 stmt = conn.prepareStatement(sql);
                                 stmt.setInt(1, teacherId);

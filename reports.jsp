@@ -44,12 +44,12 @@
                     
                     // Total Students
                     Statement stmt = conn.createStatement();
-                    ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as count FROM student WHERE status = 'active'");
+                    ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as count FROM student WHERE status = 'approved'");
                     int totalStudents = 0;
                     if (rs.next()) totalStudents = rs.getInt("count");
                     
                     // Total Teachers
-                    rs = stmt.executeQuery("SELECT COUNT(*) as count FROM teacher WHERE status = 'active'");
+                    rs = stmt.executeQuery("SELECT COUNT(*) as count FROM teacher WHERE status = 'approved'");
                     int totalTeachers = 0;
                     if (rs.next()) totalTeachers = rs.getInt("count");
                     

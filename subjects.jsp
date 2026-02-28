@@ -136,7 +136,7 @@
                                 Connection conn = DriverManager.getConnection(
                                     "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                                 
-                                String sql = "SELECT teacher_id, full_name FROM teacher WHERE status = 'active' ORDER BY full_name";
+                                String sql = "SELECT teacher_id, full_name FROM teacher WHERE status = 'approved' ORDER BY full_name";
                                 Statement stmt = conn.createStatement();
                                 ResultSet rs = stmt.executeQuery(sql);
                                 

@@ -19,7 +19,7 @@
     
     try {
         Class.forName("com.mysql.jdbc.Driver");
-        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
+        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/student_info_system?useSSL=false&serverTimezone=UTC", "root", "15056324");
         
         Statement stmt = conn.createStatement();
         

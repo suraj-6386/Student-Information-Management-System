@@ -3,7 +3,7 @@
 <%@ page import="java.util.Base64" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
-<%
+<%!
     // Function to generate unique user ID
     String generateStudentUserId(Connection conn) throws SQLException {
         String userId = "";

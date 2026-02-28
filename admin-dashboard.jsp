@@ -27,7 +27,7 @@
     try {
         Class.forName("com.mysql.jdbc.Driver");
         Connection conn = DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
+            "jdbc:mysql://localhost:3306/student_info_system?useSSL=false&serverTimezone=UTC", "root", "15056324");
         
         Statement stmt = conn.createStatement();
         
@@ -35,10 +35,10 @@
         ResultSet rs = stmt.executeQuery("SELECT (SELECT COUNT(*) FROM student) + (SELECT COUNT(*) FROM teacher) as count");
         if (rs.next()) totalUsers = rs.getInt("count");
         
-        rs = stmt.executeQuery("SELECT COUNT(*) as count FROM student WHERE status = 'active'");
+        rs = stmt.executeQuery("SELECT COUNT(*) as count FROM student WHERE status = 'approved'");
         if (rs.next()) totalStudents = rs.getInt("count");
         
-        rs = stmt.executeQuery("SELECT COUNT(*) as count FROM teacher WHERE status = 'active'");
+        rs = stmt.executeQuery("SELECT COUNT(*) as count FROM teacher WHERE status = 'approved'");
         if (rs.next()) totalTeachers = rs.getInt("count");
         
         // Pending approvals
@@ -46,7 +46,7 @@
         if (rs.next()) pendingApprovals = rs.getInt("count");
         
         // Approved users
-        rs = stmt.executeQuery("SELECT (SELECT COUNT(*) FROM student WHERE status = 'active') + (SELECT COUNT(*) FROM teacher WHERE status = 'active') as count");
+        rs = stmt.executeQuery("SELECT (SELECT COUNT(*) FROM student WHERE status = 'approved') + (SELECT COUNT(*) FROM teacher WHERE status = 'approved') as count");
         if (rs.next()) approvedUsers = rs.getInt("count");
         
         // Course statistics

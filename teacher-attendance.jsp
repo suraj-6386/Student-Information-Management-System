@@ -31,7 +31,7 @@
             // Get all student IDs for this subject
             String getStudentsSQL = "SELECT DISTINCT st.student_id FROM student st " +
                                    "JOIN subject_enrollment se ON st.student_id = se.student_id " +
-                                   "WHERE se.subject_id = ? AND se.status = 'active' AND st.status = 'active'";
+                                   "WHERE se.subject_id = ? AND se.status = 'active' AND st.status = 'approved'";
             PreparedStatement getStudentsStmt = conn.prepareStatement(getStudentsSQL);
             getStudentsStmt.setInt(1, subjectId);
             ResultSet studentRS = getStudentsStmt.executeQuery();

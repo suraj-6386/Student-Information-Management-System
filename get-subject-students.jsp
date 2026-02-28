@@ -18,7 +18,7 @@
         String query = "SELECT st.student_id, st.full_name, st.roll_number, st.email " +
                        "FROM student st " +
                        "JOIN subject_enrollment se ON st.student_id = se.student_id " +
-                       "WHERE se.subject_id = ? AND se.status = 'active' AND st.status = 'active' " +
+                       "WHERE se.subject_id = ? AND se.status = 'active' AND st.status = 'approved' " +
                        "ORDER BY st.full_name";
         
         PreparedStatement pstmt = conn.prepareStatement(query);

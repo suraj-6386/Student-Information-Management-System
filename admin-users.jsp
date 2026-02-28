@@ -25,10 +25,10 @@
         if (action != null && userIdStr != null && userType != null) {
             try {
                 Class.forName("com.mysql.jdbc.Driver");
-                Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
+                Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/student_info_system?useSSL=false&serverTimezone=UTC", "root", "15056324");
                 
                 int userId = Integer.parseInt(userIdStr);
-                String newStatus = "approve".equals(action) ? "active" : "rejected";
+                String newStatus = "approve".equals(action) ? "approved" : "rejected";
                 
                 if ("student".equals(userType)) {
                     PreparedStatement ps = conn.prepareStatement("UPDATE student SET status = ? WHERE student_id = ?");
@@ -102,7 +102,7 @@
                     <%
                         try {
                             Class.forName("com.mysql.jdbc.Driver");
-                            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
+                            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/student_info_system?useSSL=false&serverTimezone=UTC", "root", "15056324");
                             
                             // Get pending students
                             PreparedStatement ps = conn.prepareStatement("SELECT student_id as id, full_name, email, 'student' as user_type, status FROM student WHERE status = 'pending'");
@@ -175,10 +175,10 @@
                     <%
                         try {
                             Class.forName("com.mysql.jdbc.Driver");
-                            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
+                            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/student_info_system?useSSL=false&serverTimezone=UTC", "root", "15056324");
                             
                             Statement stmt = conn.createStatement();
-                            ResultSet rs = stmt.executeQuery("SELECT student_id as id, full_name, email, 'student' as user_type, status FROM student WHERE status = 'active' UNION ALL SELECT teacher_id, full_name, email, 'teacher', status FROM teacher WHERE status = 'active' ORDER BY user_type, id");
+                            ResultSet rs = stmt.executeQuery("SELECT student_id as id, full_name, email, 'student' as user_type, status FROM student WHERE status = 'approved' UNION ALL SELECT teacher_id, full_name, email, 'teacher', status FROM teacher WHERE status = 'approved' ORDER BY user_type, id");
                             
                             while (rs.next()) {
                     %>

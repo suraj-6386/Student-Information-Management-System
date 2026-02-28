@@ -24,7 +24,7 @@
                     "FROM student s " +
                     "JOIN subject_enrollment e ON s.student_id = e.student_id " +
                     "JOIN subjects sub ON e.subject_id = sub.subject_id " +
-                    "WHERE sub.course_id = ? AND s.status = 'active' " +
+                    "WHERE sub.course_id = ? AND s.status = 'approved' " +
                     "ORDER BY s.roll_number ASC";
         
         PreparedStatement stmt = conn.prepareStatement(sql);

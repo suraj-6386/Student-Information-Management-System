@@ -18,9 +18,14 @@
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection conn = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
+                "jdbc:mysql://localhost:3306/student_info_system?useSSL=false&serverTimezone=UTC", "root", "15056324");
             
-            String status = "approve".equals(action) ? "active" : "rejected";
+            // Trim parameters
+            action = action.trim();
+            userType = userType.trim();
+            userId = userId.trim();
+            
+            String status = "approve".equals(action) ? "approved" : "rejected";
             String sql = "";
             PreparedStatement stmt;
             
@@ -39,15 +44,42 @@
             }
             
             if (stmt != null) {
-                int rows = stmt.executeUpdate();
-                if (rows > 0) {
-                    message = "Registration " + ("approve".equals(action) ? "approved" : "rejected") + " successfully!";
-                    messageType = "success";
-                } else {
-                    message = "User not found or already processed!";
+                try {
+                    int rows = stmt.executeUpdate();
+                    if (rows > 0) {
+                        // If student was approved, auto-enroll them in their course subjects
+                        if ("approve".equals(action) && "student".equals(userType)) {
+                            try {
+                                String enrollSQL = "INSERT INTO subject_enrollment (student_id, subject_id, status) " +
+                                        "SELECT ?, subject_id, 'active' FROM subjects " +
+                                        "WHERE course_id = (SELECT course_id FROM student WHERE student_id = ?) " +
+                                        "AND semester = (SELECT semester FROM student WHERE student_id = ?) " +
+                                        "AND subject_id NOT IN (SELECT subject_id FROM subject_enrollment WHERE student_id = ?)";
+                                PreparedStatement enrollStmt = conn.prepareStatement(enrollSQL);
+                                int studentId = Integer.parseInt(userId);
+                                enrollStmt.setInt(1, studentId);
+                                enrollStmt.setInt(2, studentId);
+                                enrollStmt.setInt(3, studentId);
+                                enrollStmt.setInt(4, studentId);
+                                enrollStmt.executeUpdate();
+                                enrollStmt.close();
+                            } catch (Exception e) {
+                                // Enrollment error - log but don't fail the approval
+                            }
+                        }
+                        
+                        message = "Registration " + ("approve".equals(action) ? "approved" : "rejected") + " successfully!";
+
+                        messageType = "success";
+                    } else {
+                        message = "User not found or already processed!";
+                        messageType = "danger";
+                    }
+                    stmt.close();
+                } catch (SQLException e) {
+    message = "Database Error: " + e.getMessage() + " (SQL State: " + e.getSQLState() + ")";
                     messageType = "danger";
                 }
-                stmt.close();
             }
             
             conn.close();
@@ -109,7 +141,7 @@
                         try {
                             Class.forName("com.mysql.jdbc.Driver");
                             Connection conn = DriverManager.getConnection(
-                                "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
+                                "jdbc:mysql://localhost:3306/student_info_system?useSSL=false&serverTimezone=UTC", "root", "15056324");
                             
                             // Get pending students
                             String sql = "SELECT student_id as id, full_name, email, phone, 'student' as user_type, status FROM student WHERE status = 'pending'";
