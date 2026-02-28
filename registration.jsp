@@ -1,446 +1,147 @@
-<%@ include file="DBConnection.jsp" %>
+<%@ page import="java.sql.*" %>
+<%@ page import="java.security.MessageDigest" %>
+<%@ page import="java.util.Base64" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+
+<%
+    String message = "";
+    String messageType = "";
+    
+    if ("POST".equalsIgnoreCase(request.getMethod())) {
+        String fullName = request.getParameter("fullName");
+        String email = request.getParameter("email");
+        String phone = request.getParameter("phone");
+        String userType = request.getParameter("userType");
+        String password = request.getParameter("password");
+        String confirmPassword = request.getParameter("confirmPassword");
+        String address = request.getParameter("address");
+        
+        // Student-specific fields
+        String rollNumber = request.getParameter("rollNumber");
+        String dob = request.getParameter("dob");
+        String gender = request.getParameter("gender");
+        String courseId = request.getParameter("courseId");
+        String semester = request.getParameter("semester");
+        String  parentName = request.getParameter("parentName");
+        String parentContact = request.getParameter("parentContact");
+        String admissionYear = request.getParameter("admissionYear");
+        
+        // Teacher-specific fields
+        String employeeId = request.getParameter("employeeId");
+        String department = request.getParameter("department");
+        String qualification = request.getParameter("qualification");
+        String experience = request.getParameter("experience");
+        
+        // Validation
+        if (fullName == null || fullName.trim().isEmpty() || email == null || email.trim().isEmpty()) {
+            message = "Full name and email are required!";
+            messageType = "danger";
+        } else if (!password.equals(confirmPassword)) {
+            message = "Passwords do not match!";
+            messageType = "danger";
+        } else if (password.length() < 6) {
+            message = "Password must be at least 6 characters long!";
+            messageType = "danger";
+        } else if ("student".equals(userType) && (rollNumber == null || rollNumber.trim().isEmpty())) {
+            message = "Roll number is required for students!";
+            messageType = "danger";
+        } else if ("teacher".equals(userType) && (employeeId == null || employeeId.trim().isEmpty())) {
+            message = "Employee ID is required for teachers!";
+            messageType = "danger";
+        } else {
+            try {
+                Class.forName("com.mysql.jdbc.Driver");
+                Connection conn = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
+                
+                // Check if email already exists
+                String checkSql = "SELECT id FROM users WHERE email = ?";
+                PreparedStatement checkStmt = conn.prepareStatement(checkSql);
+                checkStmt.setString(1, email);
+                ResultSet rs = checkStmt.executeQuery();
+                
+                if (rs.next()) {
+                    message = "Email already registered!";
+                    messageType = "danger";
+                } else {
+                    // Hash password
+                    MessageDigest md = MessageDigest.getInstance("SHA-256");
+                    byte[] hashedPassword = md.digest(password.getBytes());
+                    String hashedPasswordStr = Base64.getEncoder().encodeToString(hashedPassword);
+                    
+                    // Insert new user with all fields
+                    String insertSql = "INSERT INTO users (full_name, email, phone, user_type, password, status, address, ";
+                    String values = "VALUES (?, ?, ?, ?, ?, 'pending', ?, ";
+                    String params = "?, ?, ?, ?, ?, ?, ?, ?, ?"; // 9 additional params for student
+                    
+                    if ("student".equals(userType)) {
+                        insertSql += "roll_number, date_of_birth, gender, course_id, semester, parent_name, parent_contact, admission_year) ";
+                        insertSql += values + params + ")";
+                    } else if ("teacher".equals(userType)) {
+                        params = "?, ?, ?, ?"; // 4 additional params for teacher
+                        insertSql += "employee_id, department, qualification, experience) ";
+                        insertSql += values + params + ")";
+                    }
+                    
+                    PreparedStatement insertStmt = conn.prepareStatement(insertSql);
+                    insertStmt.setString(1, fullName);
+                    insertStmt.setString(2, email);
+                    insertStmt.setString(3, phone);
+                    insertStmt.setString(4, userType);
+                    insertStmt.setString(5, hashedPasswordStr);
+                    insertStmt.setString(6, address);
+                    
+                    if ("student".equals(userType)) {
+                        insertStmt.setString(7, rollNumber);
+                        insertStmt.setString(8, dob);
+                        insertStmt.setString(9, gender);
+                        insertStmt.setString(10, courseId != null && !courseId.isEmpty() ? courseId : null);
+                        insertStmt.setString(11, semester);
+                        insertStmt.setString(12, parentName);
+                        insertStmt.setString(13, parentContact);
+                        insertStmt.setString(14, admissionYear);
+                    } else if ("teacher".equals(userType)) {
+                        insertStmt.setString(7, employeeId);
+                        insertStmt.setString(8, department);
+                        insertStmt.setString(9, qualification);
+                        insertStmt.setString(10, experience);
+                    }
+                    
+                    insertStmt.executeUpdate();
+                    message = "✓ Registration successful! Your account is pending admin approval. Please check your email for updates.";
+                    messageType = "success";
+                    
+                    insertStmt.close();
+                }
+                
+                rs.close();
+                checkStmt.close();
+                conn.close();
+            } catch (Exception e) {
+                message = "Error during registration: " + e.getMessage();
+                messageType = "danger";
+            }
+        }
+    }
+%>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Register - Student Management System</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f6f8;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .register-container {
-            background: white;
-            padding: 40px;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 450px;
-        }
-
-        .register-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .register-header h1 {
-            color: #2c3e50;
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-
-        .register-header p {
-            color: #7f8c8d;
-            font-size: 13px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #2c3e50;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #bdc3c7;
-            border-radius: 3px;
-            font-size: 13px;
-            transition: border-color 0.3s;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 5px rgba(52,152,219,0.2);
-        }
-
-        .form-group button {
-            width: 100%;
-            padding: 10px;
-            background: #27ae60;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-            margin-top: 10px;
-        }
-
-        .form-group button:hover {
-            background: #229954;
-        }
-
-        .error-message {
-            color: #e74c3c;
-            background: #fadbd8;
-            padding: 10px;
-            border-radius: 3px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            border-left: 4px solid #e74c3c;
-        }
-
-        .success-message {
-            color: #27ae60;
-            background: #d5f4e6;
-            padding: 10px;
-            border-radius: 3px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            border-left: 4px solid #27ae60;
-        }
-
-        .bottom-link {
-            text-align: center;
-            margin-top: 15px;
-        }
-
-        .bottom-link a {
-            color: #3498db;
-            text-decoration: none;
-            font-size: 12px;
-        }
-
-        .bottom-link a:hover {
-            text-decoration: underline;
-        }
-
-        .role-info {
-            background: #ecf0f1;
-            padding: 10px;
-            border-radius: 3px;
-            font-size: 12px;
-            color: #2c3e50;
-            margin-top: 20px;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="register-container">
-        <div class="register-header">
-            <h1>Create Account</h1>
-            <p>Student Management System</p>
-        </div>
-
-        <%
-            String errorMsg = "";
-            String successMsg = "";
-            
-            if(request.getMethod().equals("POST")) {
-                String role = request.getParameter("role");
-                String name = request.getParameter("name");
-                String username = request.getParameter("username");
-                String password = request.getParameter("password");
-                String confirmPassword = request.getParameter("confirmPassword");
-                String email = request.getParameter("email");
-                String studentCourse = request.getParameter("studentCourse");
-                String studentSemester = request.getParameter("studentSemester");
-                String studentPhone = request.getParameter("studentPhone");
-                String teacherSubject = request.getParameter("teacherSubject");
-                String teacherPhone = request.getParameter("teacherPhone");
-
-                try {
-                    // Validation
-                    if(name == null || name.trim().isEmpty() || 
-                       username == null || username.trim().isEmpty() ||
-                       password == null || password.trim().isEmpty() ||
-                       email == null || email.trim().isEmpty()) {
-                        errorMsg = "All fields are required!";
-                    }
-                    else if(!password.equals(confirmPassword)) {
-                        errorMsg = "Passwords do not match!";
-                    }
-                    else if(role == null || role.trim().isEmpty()) {
-                        errorMsg = "Please select a role!";
-                    }
-                    else if(password.length() < 6) {
-                        errorMsg = "Password must be at least 6 characters long!";
-                    }
-                    else {
-                        // Check if username already exists
-                        PreparedStatement checkPs = con.prepareStatement(
-                            "SELECT username FROM login WHERE username=?"
-                        );
-                        checkPs.setString(1, username);
-                        ResultSet checkRs = checkPs.executeQuery();
-
-                        if(checkRs.next()) {
-                            errorMsg = "Username already exists! Please choose another.";
-                        } else {
-                            // Registration logic based on role
-                            if("student".equals(role)) {
-                                String course = studentCourse;
-                                String semester = studentSemester;
-                                String phone = studentPhone;
-
-                                if(course == null || course.trim().isEmpty() || 
-                                   semester == null || semester.trim().isEmpty() ||
-                                   phone == null || phone.trim().isEmpty()) {
-                                    errorMsg = "Please fill all student fields!";
-                                } else {
-                                    // Insert into students table
-                                    PreparedStatement studentPs = con.prepareStatement(
-                                        "INSERT INTO students (name, course, semester, email, phone) VALUES (?, ?, ?, ?, ?)",
-                                        java.sql.Statement.RETURN_GENERATED_KEYS
-                                    );
-                                    studentPs.setString(1, name);
-                                    studentPs.setString(2, course);
-                                    studentPs.setString(3, semester);
-                                    studentPs.setString(4, email);
-                                    studentPs.setString(5, phone);
-                                    studentPs.executeUpdate();
-
-                                    // Get generated student_id
-                                    ResultSet geneKeys = studentPs.getGeneratedKeys();
-                                    int studentId = 0;
-                                    if(geneKeys.next()) {
-                                        studentId = geneKeys.getInt(1);
-                                    }
-
-                                    // Insert into login table with student_id
-                                    PreparedStatement loginPs = con.prepareStatement(
-                                        "INSERT INTO login (username, password, role, student_id) VALUES (?, ?, ?, ?)"
-                                    );
-                                    loginPs.setString(1, username);
-                                    loginPs.setString(2, password);
-                                    loginPs.setString(3, "student");
-                                    loginPs.setInt(4, studentId);
-                                    loginPs.executeUpdate();
-                                    loginPs.close();
-
-                                    // Auto-create marks records for all 6 default subjects
-                                    String[] defaultSubjects = {"Advanced Java", "DBMS", "AI", "ReactJS", "Research Methodology", "German Language"};
-                                    
-                                    // Get subject IDs from subjects table
-                                    PreparedStatement subjectPs = con.prepareStatement("SELECT subject_id FROM subjects ORDER BY subject_id ASC");
-                                    ResultSet subjectRs = subjectPs.executeQuery();
-                                    java.util.ArrayList<Integer> subjectIds = new java.util.ArrayList<>();
-                                    while(subjectRs.next()) {
-                                        subjectIds.add(subjectRs.getInt("subject_id"));
-                                    }
-                                    subjectRs.close();
-                                    subjectPs.close();
-                                    
-                                    // Insert marks with subject_id for each subject
-                                    PreparedStatement marksPs = con.prepareStatement(
-                                        "INSERT INTO marks (student_id, subject_id, subject, marks) VALUES (?, ?, ?, 0)"
-                                    );
-                                    for(int i = 0; i < defaultSubjects.length && i < subjectIds.size(); i++) {
-                                        marksPs.setInt(1, studentId);
-                                        marksPs.setInt(2, subjectIds.get(i));
-                                        marksPs.setString(3, defaultSubjects[i]);
-                                        marksPs.executeUpdate();
-                                    }
-                                    marksPs.close();
-
-                                    // Auto-create attendance records for all 6 default subjects
-                                    PreparedStatement attendancePs = con.prepareStatement(
-                                        "INSERT INTO attendance (student_id, subject_id, subject, date, status) VALUES (?, ?, ?, CURDATE(), 'Present')"
-                                    );
-                                    for(int i = 0; i < defaultSubjects.length && i < subjectIds.size(); i++) {
-                                        attendancePs.setInt(1, studentId);
-                                        attendancePs.setInt(2, subjectIds.get(i));
-                                        attendancePs.setString(3, defaultSubjects[i]);
-                                        attendancePs.executeUpdate();
-                                    }
-                                    attendancePs.close();
-
-                                    successMsg = "✓ Student registration successful! You can now login.";
-                                    studentPs.close();
-                                }
-                            } 
-                            else if("teacher".equals(role)) {
-                                String subject = teacherSubject;
-                                String phone = teacherPhone;
-
-                                if(subject == null || subject.trim().isEmpty() || 
-                                   phone == null || phone.trim().isEmpty()) {
-                                    errorMsg = "Please fill all teacher fields!";
-                                } else {
-                                    // Insert into teachers table
-                                    PreparedStatement teacherPs = con.prepareStatement(
-                                        "INSERT INTO teachers (name, subject, email, phone) VALUES (?, ?, ?, ?)",
-                                        java.sql.Statement.RETURN_GENERATED_KEYS
-                                    );
-                                    teacherPs.setString(1, name);
-                                    teacherPs.setString(2, subject);
-                                    teacherPs.setString(3, email);
-                                    teacherPs.setString(4, phone);
-                                    teacherPs.executeUpdate();
-
-                                    // Get generated teacher_id
-                                    ResultSet geneKeys = teacherPs.getGeneratedKeys();
-                                    int teacherId = 0;
-                                    if(geneKeys.next()) {
-                                        teacherId = geneKeys.getInt(1);
-                                    }
-
-                                    // Insert into login table with teacher_id
-                                    PreparedStatement loginPs = con.prepareStatement(
-                                        "INSERT INTO login (username, password, role, teacher_id) VALUES (?, ?, ?, ?)"
-                                    );
-                                    loginPs.setString(1, username);
-                                    loginPs.setString(2, password);
-                                    loginPs.setString(3, "teacher");
-                                    loginPs.setInt(4, teacherId);
-                                    loginPs.executeUpdate();
-                                    loginPs.close();
-
-                                    successMsg = "✓ Teacher registration successful! You can now login.";
-                                    teacherPs.close();
-                                }
-                            }
-                        }
-                        checkPs.close();
-                    }
-                } catch(Exception e) {
-                    errorMsg = "Registration error: " + e.getMessage();
-                }
-            }
-        %>
-
-        <% if(!errorMsg.isEmpty()) { %>
-            <div class="error-message">⚠ <%= errorMsg %></div>
-        <% } %>
-
-        <% if(!successMsg.isEmpty()) { %>
-            <div class="success-message"><%= successMsg %></div>
-            <div style="text-align: center; margin-top: 20px;">
-                <a href="login.jsp" style="background: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 3px; display: inline-block;">Go to Login</a>
-            </div>
-        <% } else { %>
-
-        <form method="post">
-            <div class="form-group">
-                <label for="role">Register as *</label>
-                <select id="role" name="role" required onchange="updateFields()">
-                    <option value="">-- Select Role --</option>
-                    <option value="student">Student</option>
-                    <option value="teacher">Teacher</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="name">Full Name *</label>
-                <input type="text" id="name" name="name" required placeholder="Enter your full name">
-            </div>
-
-            <div class="form-group">
-                <label for="username">Username *</label>
-                <input type="text" id="username" name="username" required placeholder="Choose a username">
-            </div>
-
-            <div class="form-group">
-                <label for="email">Email *</label>
-                <input type="email" id="email" name="email" required placeholder="Enter your email">
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password *</label>
-                <input type="password" id="password" name="password" required placeholder="Minimum 6 characters">
-            </div>
-
-            <div class="form-group">
-                <label for="confirmPassword">Confirm Password *</label>
-                <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Re-enter password">
-            </div>
-
-            <div id="studentFields" style="display: none;">
-                <div class="form-group">
-                    <label for="studentCourse">Course *</label>
-                    <select id="studentCourse" name="studentCourse">
-                        <option value="">-- Select Course --</option>
-                        <option value="B.Tech">B.Tech</option>
-                        <option value="B.Sc">B.Sc</option>
-                        <option value="M.Tech">M.Tech</option>
-                        <option value="MBA">MBA</option>
-                        <option value="BCA">BCA</option>
-                        <option value="MCA">MCA</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="studentSemester">Semester *</label>
-                    <select id="studentSemester" name="studentSemester">
-                        <option value="">-- Select Semester --</option>
-                        <option value="1">1st Semester</option>
-                        <option value="2">2nd Semester</option>
-                        <option value="3">3rd Semester</option>
-                        <option value="4">4th Semester</option>
-                        <option value="5">5th Semester</option>
-                        <option value="6">6th Semester</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="studentPhone">Phone Number *</label>
-                    <input type="text" id="studentPhone" name="studentPhone" placeholder="10-digit phone number" maxlength="10">
-                </div>
-            </div>
-
-            <div id="teacherFields" style="display: none;">
-                <div class="form-group">
-                    <label for="teacherSubject">Subject *</label>
-                    <input type="text" id="teacherSubject" name="teacherSubject" placeholder="e.g., Mathematics, English">
-                </div>
-
-                <div class="form-group">
-                    <label for="teacherPhone">Phone Number *</label>
-                    <input type="text" id="teacherPhone" name="teacherPhone" placeholder="10-digit phone number" maxlength="10">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <button type="submit">Create Account</button>
-            </div>
-        </form>
-
-        <div class="role-info">
-            <strong>Note:</strong> Admin accounts are pre-created. Students and Teachers can register here.
-        </div>
-
-        <% } %>
-
-        <div class="bottom-link">
-            Already have an account? <a href="login.jsp">Login here →</a>
-        </div>
-    </div>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - SIMS</title>
+    <link rel="stylesheet" href="style.css">
     <script>
-        function updateFields() {
-            var role = document.getElementById("role").value;
+        function toggleFields() {
+            var userType = document.getElementById("userType").value;
             var studentFields = document.getElementById("studentFields");
             var teacherFields = document.getElementById("teacherFields");
-
-            if(role === "student") {
+            
+            if (userType === "student") {
                 studentFields.style.display = "block";
                 teacherFields.style.display = "none";
-            } else if(role === "teacher") {
+            } else if (userType === "teacher") {
                 studentFields.style.display = "none";
                 teacherFields.style.display = "block";
             } else {
@@ -449,6 +150,203 @@
             }
         }
     </script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>SIMS</h1>
+                <p>DY Patil School of Science and Technology, Pune</p>
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="login.jsp" class="nav-link">Login</a>
+            </div>
+        </div>
+    </nav>
 
+    <div class="dashboard-container">
+        <div class="form-container" style="max-width: 800px;">
+            <h2>Create Your Account</h2>
+            <p>Register as a Student or Teacher with complete information</p>
+
+            <% if (!message.isEmpty()) { %>
+                <div class="alert alert-<%= messageType %>">
+                    <%= message %>
+                </div>
+            <% } %>
+
+            <form method="POST" action="registration.jsp">
+                <!-- Common Fields -->
+                <fieldset style="border: 1px solid #ccc; padding: 1.5rem; border-radius: 6px; margin-bottom: 1.5rem;">
+                    <legend style="padding: 0 1rem;">Common Information</legend>
+                    
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="fullName">Full Name *</label>
+                            <input type="text" id="fullName" name="fullName" required>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="userType">Register As *</label>
+                            <select id="userType" name="userType" required onchange="toggleFields()">
+                                <option value="">-- Select Type --</option>
+                                <option value="student">Student</option>
+                                <option value="teacher">Teacher</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="email">Email Address *</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="phone">Phone Number *</label>
+                            <input type="text" id="phone" name="phone" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <textarea id="address" name="address" rows="2" placeholder="Street address, city, state"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="password">Password *</label>
+                            <input type="password" id="password" name="password" required>
+                            <small>Minimum 6 characters</small>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="confirmPassword">Confirm Password *</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" required>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- Student Fields -->
+                <fieldset id="studentFields" style="border: 1px solid #ccc; padding: 1.5rem; border-radius: 6px; margin-bottom: 1.5rem; display: none;">
+                    <legend style="padding: 0 1rem;">Student Information</legend>
+                    
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="rollNumber">Roll Number *</label>
+                            <input type="text" id="rollNumber" name="rollNumber" placeholder="e.g., CS20001">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="admissionYear">Admission Year *</label>
+                            <input type="number" id="admissionYear" name="admissionYear" placeholder="2020">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="dob">Date of Birth</label>
+                            <input type="date" id="dob" name="dob">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="gender">Gender</label>
+                            <select id="gender" name="gender">
+                               <option value="">-- Select --</option>
+                                <option value="M">Male</option>
+                                <option value="F">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="courseId">Course</label>
+                            <select id="courseId" name="courseId">
+                                <option value="">-- Select Course --</option>
+                                <option value="1">Introduction to Programming</option>
+                                <option value="2">Data Structures</option>
+                                <option value="3">Advanced Web Development</option>
+                                <option value="4">Database Management Systems</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="semester">Semester</label>
+                            <select id="semester" name="semester">
+                                <option value="">-- Select --</option>                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4">Semester 4</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="parentName">Parent/Guardian Name</label>
+                            <input type="text" id="parentName" name="parentName" placeholder="Full name">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="parentContact">Parent Contact</label>
+                            <input type="text" id="parentContact" name="parentContact" placeholder="+91-XXX-XXX-XXXX">
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- Teacher Fields -->
+                <fieldset id="teacherFields" style="border: 1px solid #ccc; padding: 1.5rem; border-radius: 6px; margin-bottom: 1.5rem; display: none;">
+                    <legend style="padding: 0 1rem;">Faculty Information</legend>
+                    
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="employeeId">Employee ID *</label>
+                            <input type="text" id="employeeId" name="employeeId" placeholder="e.g., EMP2020001">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="department">Department *</label>
+                            <input type="text" id="department" name="department" placeholder="e.g., Computer Science">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="qualification">Qualification *</label>
+                            <input type="text" id="qualification" name="qualification" placeholder="e.g., M.Tech, B.Tech">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="experience">Experience (Years) *</label>
+                            <input type="number" id="experience" name="experience" min="0" placeholder="0">
+                        </div>
+                    </div>
+                </fieldset>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">Register Now</button>
+            </form>
+
+            <p style="text-align: center; margin-top: 1.5rem;">
+                Already have an account? <a href="login.jsp" style="font-weight: 600;">Login here</a>
+            </p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-bottom">
+            <p>&copy; 2026 SIMS - DY Patil School of Science and Technology, Pune. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <style>
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        fieldset {
+            border-radius: 8px;
+        }
+        
+        legend {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+    </style>
 </body>
 </html>

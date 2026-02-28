@@ -3,148 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Information Management System</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f6f8;
-            color: #333;
-        }
-
-        header {
-            background: #2c3e50;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        header h1 {
-            font-size: 24px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        header p {
-            font-size: 12px;
-            margin-top: 5px;
-            opacity: 0.9;
-        }
-
-        nav {
-            background: #34495e;
-            padding: 0;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            padding: 12px 20px;
-            display: inline-block;
-            font-size: 14px;
-            transition: background 0.3s;
-        }
-
-        nav a:hover {
-            background: #2c3e50;
-        }
-
-        .container {
-            width: 85%;
-            max-width: 1200px;
-            margin: 40px auto;
-            background: white;
-            padding: 40px;
-            border-radius: 5px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            min-height: 400px;
-        }
-
-        .container h2 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-size: 22px;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-        }
-
-        .container p {
-            line-height: 1.6;
-            color: #555;
-            margin-bottom: 15px;
-            font-size: 15px;
-        }
-
-        .info-box {
-            background: #ecf0f1;
-            padding: 20px;
-            border-left: 4px solid #3498db;
-            margin: 20px 0;
-            border-radius: 3px;
-        }
-
-        .info-box strong {
-            color: #2c3e50;
-        }
-
-        footer {
-            text-align: center;
-            padding: 20px;
-            color: #7f8c8d;
-            font-size: 12px;
-            margin-top: 40px;
-            border-top: 1px solid #ecf0f1;
-        }
-    </style>
+    <title>SIMS - DY Patil School of Science and Technology Pune</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>Student Information Management System</h1>
-        <p>College Management Software</p>
-    </header>
-
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="login.jsp">Login</a>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>SIMS</h1>
+                <p>DY Patil School of Science and Technology, Pune</p>
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link active">Home</a>
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="registration.jsp" class="nav-link">Register</a>
+                <a href="login.jsp" class="nav-link btn-nav-login">Login</a>
+            </div>
+        </div>
     </nav>
 
-    <div class="container">
-        <h2>Welcome to Student Management System</h2>
-        <p>
-            This is a comprehensive student information management system designed for colleges and educational institutions.
-            The system provides role-based access for administrators, teachers, and students.
-        </p>
-
-        <div class="info-box">
-            <strong>📋 System Features:</strong><br>
-            • Admin: Manage students, teachers, and view all records<br>
-            • Teacher: Enter marks, update attendance, view student information<br>
-            • Student: View own profile, marks, and attendance records
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <div class="college-header">
+                <h2 class="college-name">DY Patil School of Science and Technology</h1>
+                <p class="college-location">Pune, India</p>
+            </div>
+            <h1>Student Information Management System</h1>
+            <p class="subtitle">Empowering Students, Teachers, and Administrators with a Comprehensive Academic Management Platform</p>
+            
+            <div class="hero-buttons">
+                <a href="registration.jsp" class="btn btn-primary btn-large">Register as Student/Teacher</a>
+                <a href="login.jsp" class="btn btn-secondary btn-large">Login to Portal</a>
+            </div>
         </div>
+    </section>
 
-        <div class="info-box">
-            <strong>🔐 Default Login Credentials:</strong><br>
-            Admin - Username: admin | Password: admin123<br>
-            Teacher - Username: teacher | Password: teacher123<br>
-            Student - Username: student | Password: student123
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <h2>Why Choose SIMS?</h2>
+        <p class="section-subtitle">A Modern Academic Management Solution for DY Patil School of Science and Technology</p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🎓</div>
+                <h3>Student Portal</h3>
+                <p>Access your courses, attendance records, marks, and academic progress all in one secure platform.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">👨‍🏫</div>
+                <h3>Teacher Dashboard</h3>
+                <p>Manage classes, mark attendance, enter grades, and communicate with your students efficiently.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">⚙️</div>
+                <h3>Administration Tools</h3>
+                <p>Complete user management, course administration, and system oversight for institutional control.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Real-Time Analytics</h3>
+                <p>Track attendance, academic performance, and generate comprehensive reports instantly.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔐</div>
+                <h3>Secure & Reliable</h3>
+                <p>Enterprise-grade security with role-based access control and encrypted data protection.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>Mobile Responsive</h3>
+                <p>Access your information from any device - desktop, tablet, or smartphone with full functionality.</p>
+            </div>
         </div>
+    </section>
 
-        <p>
-            Please use the <strong>Login</strong> link above to access the system with your credentials.
-            For security, each user has restricted access based on their role.
-        </p>
-    </div>
+    <!-- How It Works Section -->
+    <section class="how-it-works">
+        <h2>How SIMS Works</h2>
+        <div class="workflow">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h4>Register</h4>
+                <p>Create your account as Student or Teacher</p>
+            </div>
+            <div class="arrow">→</div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h4>Await Approval</h4>
+                <p>Admin reviews and approves your registration</p>
+            </div>
+            <div class="arrow">→</div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h4>Login</h4>
+                <p>Access your personalized dashboard</p>
+            </div>
+            <div class="arrow">→</div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <h4>Manage</h4>
+                <p>Manage courses, attendance, marks & more</p>
+            </div>
+        </div>
+    </section>
 
-    <footer>
-        <p>&copy; 2026 Student Information Management System. All rights reserved.</p>
+    <!-- User Roles Section -->
+    <section class="user-roles" id="about">
+        <h2>For All Users</h2>
+        <p class="section-subtitle">SIMS is designed for the entire academic community</p>
+        <div class="roles-grid">
+            <div class="role-card">
+                <div class="role-icon">👨‍💼</div>
+                <h3>Administration</h3>
+                <ul>
+                    <li>✓ User account management</li>
+                    <li>✓ Approve/reject registrations</li>
+                    <li>✓ Course & subject creation</li>
+                    <li>✓ System-wide reports</li>
+                    <li>✓ User support & assistance</li>
+                </ul>
+            </div>
+
+            <div class="role-card">
+                <div class="role-icon">👨‍🏫</div>
+                <h3>Faculty Members</h3>
+                <ul>
+                    <li>✓ Manage assigned classes</li>
+                    <li>✓ Mark attendance records</li>
+                    <li>✓ Enter and track grades</li>
+                    <li>✓ Post announcements</li>
+                    <li>✓ View student progress</li>
+                </ul>
+            </div>
+
+            <div class="role-card">
+                <div class="role-icon">👨‍🎓</div>
+                <h3>Students</h3>
+                <ul>
+                    <li>✓ View personal profile</li>
+                    <li>✓ Check enrolled courses</li>
+                    <li>✓ Monitor attendance</li>
+                    <li>✓ View marks & results</li>
+                    <li>✓ Read announcements</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Links Section -->
+    <section class="quick-links">
+        <h2>Get Started Now</h2>
+        <p class="section-subtitle">Choose your role and begin your journey with SIMS</p>
+        <div class="links-container">
+            <a href="registration.jsp" class="quick-link">
+                <span class="quick-link-icon">📝</span>
+                <span>New Registration</span>
+            </a>
+            <a href="login.jsp" class="quick-link">
+                <span class="quick-link-icon">🔐</span>
+                <span>User Login</span>
+            </a>
+            <a href="#about" class="quick-link">
+                <span class="quick-link-icon">ℹ️</span>
+                <span>Learn More</span>
+            </a>
+            <a href="#contact" class="quick-link">
+                <span class="quick-link-icon">📧</span>
+                <span>Contact Support</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>DY Patil School of Science and Technology</h4>
+                <p>A premier educational institution dedicated to academic excellence and innovation in science and technology education.</p>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Quick Access</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="registration.jsp">Register</a></li>
+                    <li><a href="login.jsp">Login</a></li>
+                    <li><a href="#about">About</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Contact & Support</h4>
+                <p><strong>Email:</strong> support@dypatil-sims.edu</p>
+                <p><strong>Phone:</strong> +91-20-XXXX-XXXX</p>
+                <p><strong>Location:</strong> Pune, Maharashtra, India</p>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2026 DY Patil School of Science and Technology, Pune. All rights reserved.</p>
+            <p>Student Information Management System (SIMS)</p>
+        </div>
     </footer>
 </body>
 </html>
