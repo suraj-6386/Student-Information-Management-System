@@ -40,12 +40,12 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Subject ID</th>
-                        <th>Subject Name</th>
                         <th>Subject Code</th>
-                        <th>Credits</th>
+                        <th>Subject Name</th>
+                        <th>Degree Program</th>
                         <th>Semester</th>
-                        <th>Students</th>
+                        <th>Credits</th>
+                        <th>Enrolled Students</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -55,7 +55,14 @@
                             Connection conn = DriverManager.getConnection(
                                 "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                             
-                            String sql = "SELECT st.subject_id, s.subject_code, s.subject_name, s.credits, s.semester, COUNT(e.student_id) as student_count FROM subject_teacher st JOIN subjects s ON st.subject_id = s.subject_id LEFT JOIN enrollments e ON s.subject_id = e.subject_id WHERE st.teacher_id = ? GROUP BY st.subject_id";
+                            String sql = "SELECT st.subject_id, s.subject_code, s.subject_name, s.credits, s.semester, c.course_name, COUNT(DISTINCT sse.student_id) as student_count " +
+                                          "FROM subject_teacher st " +
+                                          "JOIN subjects s ON st.subject_id = s.subject_id " +
+                                          "JOIN courses c ON s.course_id = c.course_id " +
+                                          "LEFT JOIN student_subject_enrollment sse ON s.subject_id = sse.subject_id AND sse.status = 'active' " +
+                                          "WHERE st.teacher_id = ? " +
+                                          "GROUP BY st.subject_id " +
+                                          "ORDER BY c.course_name, s.semester, s.subject_code";
                             PreparedStatement stmt = conn.prepareStatement(sql);
                             stmt.setInt(1, userId);
                             ResultSet rs = stmt.executeQuery();
@@ -67,12 +74,12 @@
                             while (rs.next()) {
                     %>
                     <tr>
-                        <td><%= rs.getInt("subject_id") %></td>
+                        <td><strong><%= rs.getString("subject_code") %></strong></td>
                         <td><%= rs.getString("subject_name") %></td>
-                        <td><%= rs.getString("subject_code") %></td>
-                        <td><%= rs.getInt("credits") %></td>
-                        <td><%= rs.getInt("semester") %></td>
-                        <td><span style="background: #dbeafe; color: #0c2340; padding: 0.25rem 0.75rem; border-radius: 4px;"><%= rs.getInt("student_count") %> Students</span></td>
+                        <td><%= rs.getString("course_name") %></td>
+                        <td>Semester <%= rs.getInt("semester") %></td>
+                        <td><%= rs.getInt("credits") %> Credits</td>
+                        <td><span style="background: #dbeafe; color: #0c2340; padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: 600;"><%= rs.getInt("student_count") %> Students</span></td>
                     </tr>
                     <%
                             }

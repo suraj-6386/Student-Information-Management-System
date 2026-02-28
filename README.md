@@ -1,1164 +1,643 @@
-# SIMS - Student Information Management System
-## DY Patil School of Science and Technology, Pune
+# SIMS v3.0 - Student Information Management System (Academic Hierarchy Refactored)
 
-A professional, web-based Student Information Management System built with **pure HTML, CSS, JSP, and MySQL** - No frameworks, no bloatware.
+## Overview
 
----
-
-## 📋 Table of Contents
-1. [System Overview](#system-overview)
-2. [What's New in v2.0](#whats-new-in-v20)
-3. [Technology Stack](#technology-stack)
-4. [Quick Start](#quick-start)
-5. [Registration Workflow](#registration-workflow)
-6. [Module Documentation](#module-documentation)
-7. [Session Management](#session-management)
-8. [User Roles](#user-roles--permissions)
-9. [Attendance Module](#attendance-module)
-10. [Marks Module](#marks-module)
-11. [Database Schema](#database-schema)
-12. [Troubleshooting](#troubleshooting)
+SIMS v3.0 is a fully refactored Student Information Management System implementing a proper academic hierarchy where **Courses and Subjects are distinct entities**. This document explains the new architecture, data model, and workflows.
 
 ---
 
-## System Overview
+## 🎯 Key Concept - v3.0 Architecture
 
-SIMS is a comprehensive academic management system that streamlines operations for:
-- **Students**: Track courses,attendance, marks, announcements
-- **Teachers**: Manage assigned courses, mark attendance, enter grades
-- **Administrators**: Oversee users, manage courses, assign teachers
+### The Fundamental Change
 
-### Key Features
-✅ **Professional Registration** - Students & teachers register with complete information  
-✅ **One-Time Login Session** - Sessions persist across ALL pages until logout  
-✅ **Course-Teacher Assignment** - Admins assign courses to teachers efficiently  
-✅ **Attendance Tracking** - Date + checkbox-based marking per course  
-✅ **Mark Management** - Track assignment, mid-exam, final exam marks  
-✅ **Announcement System** - Faculty and admin post updates for all  
-✅ **User Edit** - Admin can edit any approved user's profile  
-✅ **Responsive Design** - Works on desktop, tablet, mobile  
+**Old Model (v2.0):** Courses = Subjects (mixed together)
+- Confusing for academic structures
+- Difficult to manage degree programs vs. course modules
 
----
-
-## What's New in v2.0
-
-### 🎓 Registration Improvements
-- **Student fields**: Roll number, DOB, gender, address, course, semester, parent info
-- **Teacher fields**: Employee ID, department, qualification, experience
-- Dynamic form based on user type selection
-- Complete data collection at registration time
-
-### 🔄 Session Management (FIXED)
-- **One-time login**: Users log in once and stay logged in
-- **Session persistence**: Remains active across all pages
-- **Proper session checks**: At top of each protected page
-- **Logout**: Properly destroys session
-
-### 📚 Course Management
-- **Removed subjects module** - Now using courses exclusively
-- **Course-Teacher Assignment** - Admin assigns teachers to courses
-- **Automatic reflection** - Assigned courses appear in teacher dashboard
-- **Teachers see only their courses** in all modules
-
-### 📝 Attendance Workflow
-- **Date picker**: Select specific class date
-- **Auto-loaded students**: All students of selected course displayed
-- **Checkbox marking**: Simple present/absent marking
-- **Teacher tracking**: Records teacher ID with attendance
-
-### 📊 Marks Workflow
-- **Course selection**: Pick course from assigned courses
-- **Student dropdown**: Select student from course enrollment
-- **Mark entry**: Assignment, mid exam, final exam  
-- **Auto-calculation**: Total and grade automatically calculated
-
-### 👤 User Edit by Admin
-- **Edit profile**: Admin can modify any approved user
-- **Change email/phone**: Update contact information
-- **Reset password**: Change user password manually
-- **Course/department update**: Update role-specific fields
-
-### 📢 Announcement System
-- **Works for all roles**: Admin, teacher, student
-- **Admin posts**: System-wide announcements
-- **Teacher posts**: Can post to students
-- **Student view**: Read-only access to announcements
-
----
-
-## Technology Stack
-
-| Component | Technology |
-|-----------|-----------|
-| Frontend | HTML5, CSS3 |
-| Backend | JSP (Java Server Pages) |
-| Database | MySQL 5.7+ |
-| Server | Apache Tomcat 8.0+ |
-| Auth | Session-based, SHA-256 password hashing |
-
-**NO Frameworks**: Pure development without Spring, Hibernate, Bootstrap, React
-
----
-
-## Quick Start
-
-### 1. Database Setup
-```bash
-# Open phpMyAdmin or MySQL CLI
-mysql -u root -p
-
-# Run setup script
-source DB_SETUP.sql
-
-# Verify database created
-SHOW DATABASES;  # Should list 'student_info_system'
+**New Model (v3.0):** Courses ≠ Subjects
 ```
-
-### 2. Verify Application Files
-```
-StudentInfoManageSystem/
-├── index.html
-├── registration.jsp
-├── login.jsp
-├── student-dashboard.jsp ... [19 more JSP files]
-├── style.css
-├── DB_SETUP.sql
-└── README.md  ← You are here
-```
-
-### 3. Access Application
-```
-http://localhost:8080/MyApps/StudentInfoManageSystem/
-```
-
-### 4. Login with Demo Credentials
-
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@sims.edu | admin123 |
-| Student | student@sims.edu | student123 |
-| Teacher | teacher@sims.edu | teacher123 |
-
----
-
-## Registration Workflow
-
-### Student Registration Collects:
-- Full Name, DOB, Gender, Email, Phone
-- Roll Number, Course, Semester, Admission Year  
-- Address, Parent Name, Parent Contact
-- Username, Password (auto-hashed)
-
-### Teacher Registration Collects:
-- Full Name, Email, Phone, Address
-- Employee ID, Department
-- Qualification, Experience (years)
-- Username, Password (auto-hashed)
-
-### Registration Flow
-```
-Registration Page
-↓
-User enters data (role-specific)
-↓
-Email duplicate check
-↓
-Password hashing (SHA-256)
-↓
-INSERT into database
-↓
-Status: PENDING (awaiting approval)
-↓
-Admin reviews & approves
-↓
-User can now LOGIN
+Courses (Degree Programs)          Subjects (Course Modules)
+├─ BTech (4 years, 8 sems)        ├─ CS101: Programming
+├─ BSc (3 years, 6 sems)          ├─ CS102: Mathematics-I
+├─ BCA (3 years, 6 sems)          ├─ CS201: Data Structures
+└─ MCA (2 years, 4 sems)          └─ CS301: OOP...
 ```
 
 ---
 
-## Module Documentation
+## 📊 Database Architecture
 
-### HOME PAGE (index.html)
-Professional introduction with:
-- College branding (DY Patil School of Science and Technology)
-- Features overview with icons
-- Role descriptions (Student, Teacher, Admin)
-- Quick action buttons
+### Entity Relationship Diagram
 
-**URL**: `/index.html`
+```
+┌──────────────────────────────────────────────────────────┐
+│              Database Structure (3NF)                    │
+└──────────────────────────────────────────────────────────┘
 
-### REGISTRATION (registration.jsp)
-- Dynamic form based on user type
-- Separate sections for student/teacher fields
-- Real-time field visibility toggle
-- Form validation before submission
+┌─────────────┐
+│   COURSES   │ (Degree Programs: BTech, BSc, BCA, MCA)
+├─────────────┤
+│ course_id   │ (PK)
+│ course_code │ (BTECH, BSC, etc.)
+│ course_name │
+│ duration    │
+└─────────────┘
+       │ 1
+       │
+       ├──────────────────────┐
+       │  (One-to-Many)       │
+       ▼ Many                 │
+┌──────────────┐             │
+│   SUBJECTS   │ (CS101, CS102, etc.)
+├──────────────┤             │
+│ subject_id   │ (PK)        │
+│ subject_code │             │
+│ subject_name │             │
+│ course_id    │ (FK) ───────┘
+│ semester     │
+│ credits      │
+└──────────────┘
+       │ 1
+       │
+       ├───────────────────────────────────┐
+       │                                   │
+       ▼ Many                              ▼ Many
+┌──────────────────┐          ┌─────────────────────┐
+│ SUBJECT_TEACHER  │          │ STUDENT_SUBJECT_    │
+│  (Assignment)    │          │   ENROLLMENT        │
+├──────────────────┤          ├─────────────────────┤
+│ assignment_id    │          │ enrollment_id       │
+│ subject_id   (FK)│          │ student_id      (FK)│
+│ teacher_id   (FK)│          │ subject_id      (FK)│
+└──────────────────┘          └─────────────────────┘
 
-**Flow**: 
-1. Choose user type (Student/Teacher)
-2. Fill common fields + role-specific fields
-3. Click Register
-4. Status set to "pending"
-5. Admin must approve
+┌──────────────┐          Other Tables:
+│    USERS     │          - ATTENDANCE (by subject)
+├──────────────┤          - MARKS (by subject)
+│ user_id (PK) │          - ANNOUNCEMENTS
+│ email        │
+│ user_type    │
+│ course_id(FK)│ ─────────> For students only
+│ role-specific│           (their degree program)
+│ fields...    │
+└──────────────┘
+```
 
-### LOGIN (login.jsp)
-- Email + password authentication
-- Session creation on success
-- Role-based dashboard redirect
-- Error messaging
+### Table Relationships
 
-**Outcome**:
-- ✅ If approved: Redirected to role dashboard
-- ❌ If pending: Error message "awaiting approval"
-- ❌ If rejected: Error message "registration rejected"
+#### 1. **COURSES** (Degree Programs)
+- **Purpose**: Represent degree programs offered
+- **Key Fields**: 
+  - `course_code`: BTECH, BSC, BCA, MCA
+  - `course_name`: Full name of program
+  - `duration_years`: 2-4 years
+  - `total_semesters`: 2-8 semesters
 
-### STUDENT DASHBOARD
-Statistics shown:
-- Total courses enrolled
-- Marks received
-- Attendance percentage
+#### 2. **SUBJECTS** (Course Modules)
+- **Purpose**: Individual courses within a degree program
+- **Key Fields**:
+  - `subject_code`: CS101, CS102, etc.
+  - `subject_name`: Programming Fundamentals, etc.
+  - `course_id` (FK): Which degree program
+  - `semester`: Which semester (1-8)
+  - `credits`: Credit hours for subject
+- **Relationship**: Many subjects belong to one course
 
-**Quick Links**:
-- Profile → View/edit student info
-- Courses → List of enrolled courses
-- Attendance → Per-course attendance view
-- Marks → View marks and grades
+#### 3. **USERS** (Unified Table)
+- **Admin**: Can manage courses, subjects, teachers, students
+- **Teacher**:
+  - `course_id = NULL` (not assigned to course/degree directly)
+  - Assigned to specific SUBJECTS via subject_teacher table
+  - Can only see students in their assigned subjects
+- **Student**:
+  - `course_id`: Points to degree program (BTech, BSc, etc.)
+  - `semester`: Current semester
+  - Enroll in SUBJECTS based on degree program and semester
 
-**Protected by**: `userType === 'student'`
+#### 4. **SUBJECT_TEACHER** (NEW - Replaces course_teacher)
+- **Purpose**: Map teachers to subjects they teach
+- **Key Change**: Teachers assigned to SUBJECTS, NOT COURSES
+- **Features**:
+  - One subject can have multiple teachers (rare)
+  - One teacher can teach multiple subjects (common)
+  - Unique constraint: (subject_id, teacher_id)
 
-### STUDEN T MODULES
+#### 5. **STUDENT_SUBJECT_ENROLLMENT** (Replaces enrollments)
+- **Purpose**: Track which students enroll in which subjects
+- **Key Change**: Enrollment now by SUBJECT, not COURSE
+- **Status**: active, completed, dropped
+- **Unique**: One enrollment per student per subject
 
-#### Courses (student-courses.jsp)
-Displays:
-- Course code & name
-- Credits, semester
-- Enrollment date
-- Teacher assigned
+#### 6. **ATTENDANCE** (Updated)
+- **Now uses**: `subject_id` (not course_id)
+- **Tracks**: Which student attended which subject on which date
+- **Marked by**: Teacher
+- **Status**: present, absent, leave
 
-#### Attendance (student-attendance.jsp)
-Shows per-course:
-- Total classes held
-- Classes attended
-- Attendance percentage
-- Date-wise breakdown
+#### 7. **MARKS** (Updated)
+- **Now uses**: `subject_id` (not course_id)
+- **Tracks**: Student scores in each subject
+- **Components**: 
+  - Theory marks (0-100)
+  - Practical marks (0-100)
+  - Assignment marks (0-100)
+  - Total marks (0-300, auto-calculated)
+  - Grade (A/B/C/D/F, auto-calculated)
 
-#### Marks (student-marks.jsp)
-Displays:
-- Course name
-- Assignment, Mid exam, Final exam scores
-- Total marks
-- Grade (auto-calculated)
-
-### TEACHER DASHBOARD
-Statistics shown:
-- Total assigned courses
-- Total students
-- Quick action buttons
-
-**Quick Links**:
-- Profile → View/edit teacher info
-- My Courses → List assigned courses NEW
-- Students → Students in courses
-- Attendance → Mark attendance
-- Marks → Enter marks
-
-**Protected by**: `userType === 'teacher'`
-
-### TEACHER MODULES
-
-#### My Courses (teacher-courses.jsp) - NEW
-Lists all courses assigned to teacher:
-- Course code & name
-- Semester, credits
-- Date assigned
-- Student enrollment count
-
-#### Students (teacher-students.jsp)
-Students in courses assigned to teacher:
-- Student name, ID, email
-- Contact information
-- Enrolled course(s)
-
-#### Attendance (teacher-attendance.jsp) - IMPROVED
-**Step 1**: Select course (from assigned courses)
-**Step 2**: Select date (HTML5 date picker)
-**Step 3**: Auto-load all students of that course
-**Step 4**: Mark ☐ Present/Absent for each
-**Step 5**: Submit
-
-**Stored**: student_id, course_id, teacher_id, class_date, is_present
-
-#### Marks (teacher-marks.jsp) - IMPROVED
-**Step 1**: Select course
-**Step 2**: Select student (auto-populated dropdown)
-**Step 3**: Enter marks:
-- Assignment (0-100)
-- Mid Exam (0-100)  
-- Final Exam (0-100)
-**Step 4**: Submit
-**Auto-calculated**: Total, Grade
-
-**Stored**: student_id, course_id, teacher_id, assignment, mid_exam, final_exam
-
-### ADMIN DASHBOARD
-Statistics & quick actions:
-- Pending registrations
-- Approved users
-- Course management
-- System reports
-
-**Modules**:
-- Pending Approvals → Review & approve/reject registrations
-- Approved Users → Edit user profiles, reset passwords  
-- Courses → Create/manage courses + assign teachers
-- Reports → System analytics
-
-**Protected by**: `userType === 'admin'`
-
-### ADMIN MODULES
-
-#### Pending Approvals (admin-pending.jsp)
-Table with pending registrations:
-- User name, email, phone, type
-- Action buttons: [Approve] [Reject]
-- Auto-updated course enrollment if student
-
-#### Approved Users (admin-users.jsp) - ENHANCED
-All approved users with [Edit] button:
-
-**Edit Form allows changing**:
-- Email, phone, address
-- Course (for students)
-- Department, qualification (for teachers)
-- Password reset option
-
-#### Courses (courses.jsp) - ENHANCED
-Create/manage courses:
-- **Create Course**: Code, name, credits, semester
-- **Assign Teacher**: Dropdown to select teacher for each course
-- **Update Course**: Edit existing course details
-- **View Assignments**: See which teacher assigned
-
-**Note**: Course-teacher relationship stored separately
-- Teachers see assigned courses in dashboard
-
-#### Reports (reports.jsp)
-System analytics:
-- Total users by type
-- Student enrollment statistics
-- Attendance summary
-- Marks distribution
-
-### ANNOUNCEMENTS (announcements.jsp)
-- Admin/Teacher can post
-- All can view
-- Sorted by latest first
-- Shows: Title, content, author, date
+#### 8. **ANNOUNCEMENTS**
+- Unchanged from v2.0
+- Posted by admin/teacher
+- Visible based on role
 
 ---
 
-## Session Management
+## 🔄 Updated Workflows
 
-### ✅ Session Fixed in v2.0
+### 1. **Registration Workflow**
 
-**Problem (v1.0)**: Users logged out when navigating pages  
-**Solution (v2.0)**: Proper session checking only at login/logout
+```
+Student Registration:
+  ├─ Select Full Name, Email, Roll No., DOB
+  ├─ Select COURSE (Degree Program):
+  │  └─ Options: BTech, BSc, BCA, MCA
+  ├─ System auto-assigns Semester = 1
+  ├─ Admin reviews & approves
+  └─ Student account created
 
-### Implementation
-
-**At TOP of every protected JSP** (after imports):
-```jsp
-<%
-    // Session Check - FIXED
-    if (session == null || session.isNew() || 
-        session.getAttribute("userId") == null || 
-        session.getAttribute("userType") == null) {
-        response.sendRedirect("login.jsp");
-        return;
-    }
-    
-    // Optional: Role check
-    if (!"student".equals(session.getAttribute("userType"))) {
-        response.sendRedirect("login.jsp");
-        return;
-    }
-    
-    int userId = (Integer) session.getAttribute("userId");
-    // Page logic continues...
-%>
+Admin assigns subjects based on:
+  - Course selected (e.g., BTech)
+  - Current semester (e.g., Semester 1)
+  - Auto-enroll in all Semester 1 subjects for that course
 ```
 
-### Session Attributes
+### 2. **Student Dashboard**
+
 ```
-session.setAttribute("userId", userId);             // Integer
-session.setAttribute("userName", fullName);         // String  
-session.setAttribute("userType", user_type);        // 'student'/'teacher'/'admin'
-session.setAttribute("userEmail", email);           // String
+After Login:
+  ├─ View Profile
+  │   └─ Course: BTech
+  │   └─ Semester: 1
+  ├─ View Enrolled Subjects
+  │   ├─ CS101: Programming Fundamentals
+  │   ├─ CS102: Mathematics-I
+  │   ├─ CS103: Physics-I
+  │   └─ View Attendance/Marks for each
+  ├─ View Attendance by Subject
+  ├─ View Marks by Subject
+  ├─ View Announcements
+  └─ Update Profile
 ```
 
-### Session Lifecycle
-1. **Created**: login.jsp after successful authentication
-2. **Maintained**: All pages check and use session
-3. **Persisted**: Across all navigation until logout
-4. **Destroyed**: logout.jsp calls `session.invalidate()`
-5. **Timeout**: Default 30 minutes (configurable)
+### 3. **Teacher Dashboard**
+
+```
+After Login:
+  ├─ View Assigned Subjects (NOT courses)
+  │   ├─ CS101: Programming Fundamentals
+  │   │    └─ 45 enrolled students
+  │   ├─ CS201: Data Structures
+  │   │    └─ 42 enrolled students
+  │   └─ CS301: OOP
+  │        └─ 40 enrolled students
+  ├─ Mark Attendance by Subject
+  │   ├─ Select Subject
+  │   ├─ Select Date
+  │   ├─ Mark students present/absent/leave
+  │   └─ Save
+  ├─ Enter Marks by Subject
+  │   ├─ Select Subject
+  │   ├─ Enter theory, practical, assignment marks
+  │   ├─ Grades auto-calculated
+  │   └─ Save
+  └─ View Announcements
+```
+
+### 4. **Admin Dashboard**
+
+```
+Admin Menu:
+  ├─ Manage Courses (Degree Programs)
+  │   ├─ View all courses (BTech, BSc, etc.)
+  │   ├─ View subjects under each course
+  │   └─ View students per course
+  ├─ Manage Subjects
+  │   ├─ Add/Edit/Delete subjects
+  │   ├─ Filter by course and semester
+  │   └─ View enrollment count
+  ├─ Assign Subjects to Teachers
+  │   ├─ Select Subject
+  │   ├─ Multi-select Teachers (assign multiple)
+  │   └─ View current assignments
+  ├─ Manage Users
+  │   ├─ Approve pending students/teachers
+  │   ├─ Edit student profiles (course change, semester update)
+  │   ├─ Edit teacher profiles
+  │   └─ Manage approvals
+  ├─ View Reports
+  │   ├─ Subject Enrollment Summary
+  │   ├─ Attendance Report by Subject
+  │   ├─ Marks Report by Subject
+  │   └─ Teacher Assignment Overview
+  └─ System Settings
+```
+
+### 5. **Attendance Workflow (Teacher)**
+
+```
+Step 1: Login as Teacher
+  └─ Dashboard shows assigned subjects
+
+Step 2: Select Subject to Mark Attendance
+  ├─ Click "Mark Attendance" on subject
+  ├─ Choose date (HTML5 date picker)
+  └─ System loads all enrolled students
+
+Step 3: Mark Status
+  ├─ Display list of enrolled students
+  ├─ Mark as:
+  │  ├─ ✓ Present
+  │  ├─ ✗ Absent
+  │  └─ ~ Leave
+  ├─ Option: Select All / Deselect All
+  └─ Submit
+
+Result:
+  └─ Attendance recorded in database
+     (student_id, subject_id, teacher_id, date, status)
+```
+
+### 6. **Marks Entry Workflow (Teacher)**
+
+```
+Step 1: Select Subject
+  ├─ Dropdown of assigned subjects
+  └─ Shows enrolled count
+
+Step 2: View Enrolled Students
+  ├─ Auto-populated student list
+  ├─ Shows: Student ID, Name, Roll No.
+  └─ Can search/filter
+
+Step 3: Enter Marks
+  ├─ For each student:
+  │   ├─ Theory Marks (0-100)
+  │   ├─ Practical Marks (0-100)
+  │   ├─ Assignment Marks (0-100)
+  │   └─ Auto-calculate:
+  │      ├─ Total = Theory + Practical + Assignment
+  │      └─ Grade = Auto-calculated
+  └─ Submit
+
+Grade Calculation:
+  - 270-300 = A
+  - 240-269 = B
+  - 180-239 = C
+  - 150-179 = D
+  - Below 150 = F
+```
 
 ---
 
-## User Roles & Permissions
+## 🗄️ Sample Data Architecture
 
-### 👨‍🎓 STUDENT
-✓ View profile  
-✓ View enrolled courses  
-✓ View attendance per course  
-✓ View marks and grades  
-✓ Read announcements  
-✗ Cannot create/edit anything  
+### Degree Programs (Courses)
+```
+1. BTech - 4 years, 8 semesters, 160 credits
+   ├─ Semester 1: CS101, CS102, CS103 (3 subjects)
+   ├─ Semester 2: CS201, CS202, CS203 (3 subjects)
+   ├─ Semester 3: CS301, CS302 (2 subjects)
+   └─ Semester 4: CS401, CS402 (2 subjects)
 
-### 👨‍🏫 TEACHER
-✓ View assigned courses  
-✓ View enrolled students  
-✓ Mark attendance (with date picker)  
-✓ Enter/edit student marks  
-✓ Post announcements  
-✓ View/edit own profile  
-✗ Cannot manage courses  
-✗ Cannot manage other teachers/students  
+2. BSc - 3 years, 6 semesters, 120 credits
+   ├─ Semester 1: SCI101, SCI102, SCI103 (3 subjects)
+   └─ Semester 2: SCI201, SCI202 (2 subjects)
 
-### 👨‍💼 ADMIN
-✓ View all users  
-✓ Approve/reject registrations  
-✓ Edit any user profile  
-✓ Reset user passwords  
-✓ Create/manage courses  
-✓ Assign teachers to courses  
-✓ View system reports  
-✓ Post announcements  
-✓ Full system access  
+3. BCA - 3 years, 6 semesters, 120 credits
+   ├─ Semester 1: BCA101, BCA102, BCA103 (3 subjects)
+   └─ Semester 2: BCA201, BCA202 (2 subjects)
+
+4. MCA - 2 years, 4 semesters, 80 credits
+   (Demo: Subjects can be added)
+```
+
+### Teacher Assignments (subject_teacher)
+```
+Dr. Smith (teacher_id=2) teaches:
+  - CS101: Programming Fundamentals
+  - CS201: Data Structures
+  - CS301: Object-Oriented Programming
+
+Prof. Johnson (teacher_id=3) teaches:
+  - CS102: Mathematics-I
+  - CS203: Database Basics
+  - CS302: Web Development-I
+
+Ms. Sharma (teacher_id=4) teaches:
+  - CS202: Mathematics-II
+  - CS401: Database Management Systems
+  - CS402: Web Development-II
+```
+
+### Student Enrollments (student_subject_enrollment)
+```
+John Doe (BTech, Semester 1):
+  - Enrolled in: CS101, CS102, CS103
+
+Priya Singh (BTech, Semester 1):
+  - Enrolled in: CS101, CS102, CS103
+
+Amit Kumar (BTech, Semester 2):
+  - Enrolled in: CS201, CS202, CS203
+
+Alice Wilson (BSc, Semester 1):
+  - Enrolled in: SCI101, SCI102, SCI103
+
+Rahul Patel (BCA, Semester 1):
+  - Enrolled in: BCA101, BCA102, BCA103
+```
 
 ---
 
-## Attendance Module
+## 🎓 Demo User Credentials
 
-### Workflow
+### All Demo Passwords: `admin123`
+Hash: `JAvlGPq9JyTdtvBO6x2llnRI1+gxwIyPqCKAn3THIKk=`
 
-**Teacher Attendance** (`teacher-attendance.jsp`):
-1. Select course from dropdown (auto-populated from course_teacher)
-2. Select date using HTML5 date picker
-3. After date selection:
-   - Query: Fetch all students enrolled in selected course
-   - Display table with checkbox for each student
-4. Mark ☐ Present/☐ Absent for each student
-5. Click Submit
-6. INSERT into attendance table with teacher_id
+### Admin
+- **Email**: admin@sims.edu
+- **Password**: admin123
+- **Access**: Full system access
 
-**Student Attendance** (`student-attendance.jsp`):
-- Shows per-course attendance summary
-- Auto-calculated percentage
-- Date-wise attendance records
+### Teachers
+1. **Dr. Smith**
+   - Email: dr.smith@sims.edu
+   - Employee ID: EMP2020001
+   - Teaches: Programming, Data Structures, OOP
 
-### Database Storage
+2. **Prof. Johnson**
+   - Email: prof.johnson@sims.edu
+   - Employee ID: EMP2020002
+   - Teaches: Math-I, Database Basics, Web Dev-I
+
+3. **Ms. Sharma**
+   - Email: ms.sharma@sims.edu
+   - Employee ID: EMP2020003
+   - Teaches: Math-II, DBMS, Web Dev-II
+
+### Students
+1. **John Doe** (BTech, Sem 1)
+   - Email: john.doe@sims.edu
+   - Roll No: BTECH20001
+
+2. **Priya Singh** (BTech, Sem 1)
+   - Email: priya.singh@sims.edu
+   - Roll No: BTECH20002
+
+3. **Amit Kumar** (BTech, Sem 2)
+   - Email: amit.kumar@sims.edu
+   - Roll No: BTECH20003
+
+4. **Alice Wilson** (BSc, Sem 1)
+   - Email: alice.wilson@sims.edu
+   - Roll No: BSC20001
+
+5. **Rahul Patel** (BCA, Sem 1)
+   - Email: rahul.patel@sims.edu
+   - Roll No: BCA20001
+
+---
+
+## 💾 Database Setup
+
+### Prerequisites
+- MySQL 5.7 or higher
+- Database: `student_info_system`
+- Character Set: UTF-8mb4
+- Engine: InnoDB
+
+### Setup Steps
+
+1. **Drop existing database** (if upgrading from v2.0):
+   ```bash
+   mysql -u root -p -e "DROP DATABASE IF EXISTS student_info_system;"
+   ```
+
+2. **Run DB_SETUP.sql**:
+   ```bash
+   mysql -u root -p < DB_SETUP.sql
+   ```
+
+3. **Verify installation**:
+   ```bash
+   mysql -u root -p student_info_system -e "SHOW TABLES;"
+   ```
+
+4. **Check demo data**:
+   ```bash
+   mysql -u root -p student_info_system -e "SELECT COUNT(*) FROM users; SELECT COUNT(*) FROM courses; SELECT COUNT(*) FROM subjects;"
+   ```
+
+---
+
+## 🔍 Reporting Views
+
+### 1. `student_subject_attendance_summary`
+Shows attendance percentage per subject for each student.
 ```sql
-INSERT INTO attendance 
-(student_id, course_id, teacher_id, class_date, is_present)
-VALUES (?, ?, ?, ?, ?);
+SELECT * FROM student_subject_attendance_summary 
+WHERE student_id = 5;
+-- Result: Attendance % for John's each subject
 ```
 
-### Query for Report
+### 2. `student_subject_marks_summary`
+Shows marks and grades per subject.
 ```sql
-SELECT 
-    student_id,
-    course_name,
-    COUNT(*) as total_classes,
-    SUM(IF(is_present = 1, 1, 0)) as attended_classes,
-    ROUND(attended_classes * 100 / total_classes, 2) as percentage
-FROM attendance a
-JOIN courses c ON a.course_id = c.course_id
-GROUP BY a.student_id, a.course_id;
+SELECT * FROM student_subject_marks_summary 
+WHERE student_id = 6;
+-- Result: Theory, Practical, Assignment, Grade per subject
 ```
 
----
-
-## Marks Module
-
-### Workflow
-
-**Teacher Marks Entry** (`teacher-marks.jsp`):
-1. Select course from dropdown
-2. Select student (auto-populated with students in course)
-3. Enter marks:
-   - Assignment: 0-100
-   - Mid Exam: 0-100
-   - Final Exam: 0-100
-4. Submit
-5. System auto-calculates:
-   - Total = assignment + mid_exam + final_exam
-   - Grade = A/B/C/D/F based on total
-6. INSERT/UPDATE marks table
-
-**Student Marks View** (`student-marks.jsp`):
-- Shows all courses with their marks
-- Displays assignment, mid-exam, final-exam
-- Shows total and grade
-- Auto-calculated totals
-
-### Grade Calculation
-```
-Total Score = Assignment + Mid Exam + Final Exam (out of 300)
-
-240+ = A
-210+ = B
-180+ = C
-150+ = D
-<150 = F
-```
-
----
-
-## Database Schema
-
-### users Table
+### 3. `subject_enrollment_summary`
+Shows enrollment count and capacity usage per subject.
 ```sql
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    full_name VARCHAR(255),
-    email VARCHAR(255) UNIQUE,
-    phone VARCHAR(20),
-    user_type ENUM('admin', 'student', 'teacher'),
-    password VARCHAR(255),
-    status ENUM('pending', 'approved', 'rejected'),
-    
-    -- Student fields
-    roll_number VARCHAR(50),
-    date_of_birth DATE,
-    gender ENUM('M', 'F', 'Other'),
-    address TEXT,
-    course_id INT,
-    semester INT,
-    parent_name VARCHAR(255),
-    parent_contact VARCHAR(20),
-    admission_year INT,
-    
-    -- Teacher fields
-    employee_id VARCHAR(50),
-    department VARCHAR(100),
-    qualification VARCHAR(255),
-    experience INT,
-    
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP,
-    FOREIGN KEY (course_id) REFERENCES courses(course_id)
-);
+SELECT * FROM subject_enrollment_summary 
+WHERE course_id = 1;
+-- Result: All BTech subjects with enrollment %
 ```
 
-### course_teacher Table (NEW - Replaces subject_teacher)
+### 4. `teacher_subject_assignment`
+Shows which subjects teachers teach.
 ```sql
-CREATE TABLE course_teacher (
-    assignment_id INT AUTO_INCREMENT PRIMARY KEY,
-    course_id INT NOT NULL,
-    teacher_id INT NOT NULL,
-    assigned_date TIMESTAMP,
-    FOREIGN KEY (course_id) REFERENCES courses(course_id),
-    FOREIGN KEY (teacher_id) REFERENCES users(id),
-    UNIQUE KEY (course_id, teacher_id)
-);
+SELECT * FROM teacher_subject_assignment 
+WHERE teacher_id = 2;
+-- Result: All subjects taught by Dr. Smith
 ```
 
-### courses Table
+### 5. `course_curriculum`
+Complete curriculum of each degree program.
 ```sql
-CREATE TABLE courses (
-    course_id INT AUTO_INCREMENT PRIMARY KEY,
-    course_code VARCHAR(50) UNIQUE NOT NULL,
-    course_name VARCHAR(255) NOT NULL,
-    credits INT NOT NULL,
-    semester INT NOT NULL,
-    created_at TIMESTAMP
-);
-```
-
-### attendance Table
-```sql
-CREATE TABLE attendance (
-    attendance_id INT AUTO_INCREMENT PRIMARY KEY,
-    student_id INT NOT NULL,
-    course_id INT NOT NULL,
-    teacher_id INT NOT NULL,  -- NEW
-    class_date DATE NOT NULL,
-    is_present BOOLEAN DEFAULT 0,
-    created_at TIMESTAMP,
-    FOREIGN KEY (student_id) REFERENCES users(id),
-    FOREIGN KEY (course_id) REFERENCES courses(course_id),
-    FOREIGN KEY (teacher_id) REFERENCES users(id)
-);
-```
-
-### marks Table
-```sql
-CREATE TABLE marks (
-    marks_id INT AUTO_INCREMENT PRIMARY KEY,
-    student_id INT NOT NULL,
-    course_id INT NOT NULL,
-    teacher_id INT NOT NULL,  -- NEW
-    assignment INT DEFAULT 0,
-    mid_exam INT DEFAULT 0,
-    final_exam INT DEFAULT 0,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP,
-    FOREIGN KEY (student_id) REFERENCES users(id),
-    FOREIGN KEY (course_id) REFERENCES courses(course_id),
-    FOREIGN KEY (teacher_id) REFERENCES users(id),
-    UNIQUE KEY (student_id, course_id)
-);
-```
-
-### Key Changes from v1.0
-- ✅ Removed `subjects` table dependency
-- ✅ Replaced `subject_teacher` with `course_teacher`  
-- ✅ Updated `attendance` to include `teacher_id`
-- ✅ Updated `marks` to include `teacher_id`
-- ✅ Added student fields to `users` table
-- ✅ Added teacher fields to `users` table
-
----
-
-## Troubleshooting
-
-### "Session Lost After Navigation"
-**Solution**:
-1. Verify session check is at TOP of JSP (before any output)
-2. Ensure `session.setAttribute()` called in login.jsp
-3. Check browser cookies enabled
-4. Verify timeout hasn't exceeded (default 30 min)
-
-### "Cannot Mark Attendance - No Students"
-**Solution**:
-1. Ensure students enrolled in course (`enrollments` table)
-2. Verify teacher assigned to course (`course_teacher` table)
-3. Check course selection dropdown displays correct course
-4. Verify date picker populated
-
-### "Login Fails - Invalid Credentials"
-**Solution**:
-1. Verify user status is 'approved' (not 'pending'/'rejected')
-2. Check password hash matches database
-3. Verify database has user record
-4. Try demo credentials first
-
-Generate correct hash:
-```python
-import hashlib, base64
-password = "admin123"
-hashed = hashlib.sha256(password.encode()).digest()
-print(base64.b64encode(hashed).decode())
-# JAvlGPq9JyTdtvBO6x2llnRI1+gxwIyPqCKAn3THIKk=
-```
-
-### "Database Connection Error"
-**Solution**:
-1. Start MySQL service
-2. Verify database exists: `SHOW DATABASES;`
-3. Check credentials: root / 15056324
-4. Verify connection string: `jdbc:mysql://localhost:3306/student_info_system`
-
-### "CSS Not Loading"
-**Solution**:
-1. Verify `style.css` in root folder
-2. Check `<link>` tag: `<link rel="stylesheet" href="style.css">`
-3. Clear browser cache (Ctrl+Shift+Delete)
-4. Check console for 404 errors
-
----
-
-## File Structure
-
-```
-StudentInfoManageSystem/
-├── index.html
-├── style.css
-│
-├── login.jsp
-├── registration.jsp
-├── logout.jsp
-│
-├── student-dashboard.jsp
-├── student-profile.jsp
-├── student-courses.jsp
-├── student-attendance.jsp
-├── student-marks.jsp
-├── announcements.jsp
-│
-├── teacher-dashboard.jsp
-├── teacher-profile.jsp
-├── teacher-courses.jsp          ← NEW (was teacher-subjects.jsp)
-├── teacher-students.jsp
-├── teacher-attendance.jsp      ← IMPROVED
-├── teacher-marks.jsp           ← IMPROVED
-│
-├── admin-dashboard.jsp
-├── admin-pending.jsp
-├── admin-users.jsp             ← ENHANCED
-├── courses.jsp                 ← ENHANCED
-├── reports.jsp
-│
-├── DB_SETUP.sql
-├── README.md
-└── error.jsp
+SELECT * FROM course_curriculum 
+WHERE course_code = 'BTECH' AND semester = 1;
+-- Result: All Semester 1 subjects in BTech
 ```
 
 ---
 
-## Version History
+## 🔄 Migration from v2.0 to v3.0
 
-### v2.0 - Major Professional Update (Current)
-- ✅ Complete registration with student/teacher details
-- ✅ Fixed session persistence for one-time login
-- ✅ Course-teacher assignment system
-- ✅ Removed subjects module - courses only
-- ✅ Enhanced attendance with date picker + checkbox
-- ✅ Admin user edit functionality  
-- ✅ Improved marks module with auto-calculation
-- ✅ Professional college branding
-- ✅ Enhanced database schema
-- ✅ Comprehensive README documentation
+### Old Structure (v2.0)
+- `courses` table: CS101, CS102, etc. (mixed concept)
+- `enrollments`: student → course
+- `course_teacher`: teacher → course
+- `attendance`, `marks`: by course_id
 
-### v1.0 - Initial Release
-- Basic registration and login
-- Core dashboard modules
-- Simple course management
-- Basic attendance/marks
+### New Structure (v3.0)
+- `courses` table: BTech, BSc, BCA, MCA (degree programs)
+- `subjects` table: CS101, CS102, etc. (under courses)
+- `student_subject_enrollment`: student → subject
+- `subject_teacher`: teacher → subject (renamed from course_teacher)
+- `attendance`, `marks`: by subject_id
 
----
-
-## Support & Contact
-
-**Email**: support@dypatil-sims.edu  
-**Phone**: +91-20-XXXX-XXXX  
-**Location**: Pune, Maharashtra, India  
-
----
-
-**SIMS v2.0 - Production Ready** ✅  
-**Last Updated**: February 28, 2026  
-**Institution**: DY Patil School of Science and Technology, Pune
+### Data Migration Steps
+1. Backup v2.0 database
+2. Create v3.0 database with DB_SETUP.sql
+3. Map old courses to subjects under appropriate degree program
+4. Update student enrollments to subject-based
+5. Transfer teacher assignments to subject_teacher
+6. Migrate attendance and marks records (course_id → subject_id)
+7. Verify data integrity
 
 ---
 
 ## 📁 Project Structure
 
-**ALL FILES IN SINGLE FOLDER** (`/StudentInfoManageSystem/`):
-
 ```
 StudentInfoManageSystem/
-├── index.html                    (Landing page - only HTML file)
-├── style.css                     (Single unified stylesheet)
-│
-├── registration.jsp              (User registration form)
-├── login.jsp                     (Authentication portal)
-├── logout.jsp                    (Session termination)
-│
-├── admin-dashboard.jsp           (Admin main portal)
-├── admin-pending.jsp             (Approve/reject registrations)
-├── admin-users.jsp               (User management)
-├── courses.jsp                   (Create/manage courses)
-├── subjects.jsp                  (Create/manage subjects)
-├── reports.jsp                   (System reports & analytics)
-│
-├── student-dashboard.jsp         (Student main portal)
-├── student-profile.jsp           (Student profile view)
-├── student-courses.jsp           (Enrolled courses)
-├── student-attendance.jsp        (View attendance)
-├── student-marks.jsp             (View results)
-│
-├── teacher-dashboard.jsp         (Teacher main portal)
-├── teacher-profile.jsp           (Teacher profile view)
-├── teacher-subjects.jsp          (Assigned subjects)
-├── teacher-students.jsp          (Class student list)
-├── teacher-attendance.jsp        (Mark attendance)
-├── teacher-marks.jsp             (Enter marks)
-│
-├── announcements.jsp             (View/post announcements)
-├── error.jsp                     (Error handling page)
-│
-├── DB_SETUP.sql                  (Database schema - separate)
-└── README.md                     (This file - separate)
+├─ DB_SETUP.sql                 # Database schema (v3.0 refactored)
+├─ README.md                    # This documentation
+├─ style.css                    # Global CSS
+├─ index.html                   # Public landing page
+
+├─ login.jsp                    # Login page
+├─ registration.jsp             # Student/Teacher registration
+├─ logout.jsp                   # Logout handler
+
+├─ student-dashboard.jsp        # Student home page
+├─ student-profile.jsp          # Student profile view/update
+├─ student-subjects.jsp         # View enrolled SUBJECTS (updated)
+├─ student-marks.jsp            # View subject marks
+├─ student-attendance.jsp       # View subject attendance
+
+├─ teacher-dashboard.jsp        # Teacher home page
+├─ teacher-profile.jsp          # Teacher profile
+├─ teacher-subjects.jsp         # View assigned SUBJECTS (NEW)
+├─ teacher-attendance.jsp       # Mark subject attendance
+├─ teacher-marks.jsp            # Enter subject marks
+
+├─ admin-dashboard.jsp          # Admin home page
+├─ admin-users.jsp              # Manage users
+├─ admin-pending.jsp            # Approve pending accounts
+├─ subjects.jsp                 # Manage SUBJECTS (NEW)
+├─ courses.jsp                  # Manage COURSES (degree programs)
+├─ reports.jsp                  # View reports
+
+├─ announcements.jsp            # View/post announcements
+├─ error.jsp                    # Error page
+
+└─ AJAX Endpoints:
+   ├─ get-user-details.jsp      # Load user data for editing
+   ├─ get-subject-students.jsp  # Load students in subject (NEW)
+   └─ get-teacher-subjects.jsp  # Load teacher's assigned subjects
 ```
-
-**Key Structure**: 
-- ✅ Single folder with ALL 24 JSP files + 1 HTML + 1 CSS
-- ✅ No `WEB-INF` folder needed
-- ✅ No Java files (.java)
-- ✅ No subfolders
-
----
-
-## 🚀 Quick Start Guide
-
-### 1. Database Setup
-
-1. **Open phpMyAdmin**:
-   - Go to `http://localhost/phpmyadmin`
-   - Login with default credentials (root/empty password)
-
-2. **Create Database**:
-   - Click "New" → Create database `student_info_system`
-
-3. **Import Schema**:
-   - Select the `student_info_system` database
-   - Go to "Import" tab
-   - Choose `DB_SETUP.sql` file and click "Import"
-   - ✅ All tables and sample data created
-
-### 2. Verify Tomcat Setup
-
-1. **Check Folder**:
-   ```
-   C:\xampp\tomcat\webapps\MyApps\StudentInfoManageSystem\
-   ```
-   - All 24 JSP files present
-   - index.html present
-   - style.css present
-   - DB_SETUP.sql present
-
-2. **Restart Tomcat** (if files were just added)
-
-### 3. Access the Application
-
-1. **Open Browser**:
-   ```
-   http://localhost:8080/MyApps/StudentInfoManageSystem/
-   ```
-
-2. **Landing Page** (`index.html`):
-   - Welcome page with navigation
-   - Links to Register, Login, About
-
-3. **Register or Login**:
-   - Register as Student/Teacher (pending approval)
-   - OR login with demo credentials (see below)
-
----
-
-## 👤 Demo Credentials
-
-| Role | Email | Password | Status |
-|------|-------|----------|--------|
-| **Admin** | admin@sims.edu | admin123 | Approved |
-| **Student** | student@sims.edu | student123 | Approved |
-| **Teacher** | teacher@sims.edu | teacher123 | Approved |
-
-### Login Flow:
-1. Go to `http://localhost:8080/MyApps/StudentInfoManageSystem/login.jsp`
-2. Enter email and password from table above
-3. Click "Login"
-4. ✅ Redirected to role-specific dashboard
-
----
-
-## 🔐 Security Features
-
-### Password Management:
-- All passwords **SHA-256 hashed** with Base64 encoding
-- Hash implementation: `java.security.MessageDigest`
-- Stored as Base64 string in database
-
-### Session Management:
-- JSP `session` object for user tracking
-- Session attributes: `userId`, `userName`, `userType`, `userEmail`
-- Automatic redirect to login if session expires
-- Logout clears all session data
-
-### SQL Injection Prevention:
-- All queries use **PreparedStatement**
-- Never concatenates user input directly
-- Example:
-  ```jsp
-  String sql = "SELECT * FROM users WHERE email = ? AND password = ?";
-  PreparedStatement pstmt = conn.prepareStatement(sql);
-  pstmt.setString(1, email);
-  pstmt.setString(2, password);
-  ```
-
----
-
-## 📦 Database Schema
-
-### Core Tables:
-
-1. **users** - All system users
-   - Fields: id, full_name, email, phone, user_type, password, status
-   - Status: pending → approved → (login enabled)
-
-2. **courses** - Available courses
-   - Fields: course_id, course_code, course_name, credits, semester
-
-3. **subjects** - Academic subjects
-   - Fields: subject_id, subject_code, subject_name, credits, semester
-
-4. **enrollments** - Student course enrollments
-   - Fields: enrollment_id, student_id, course_id, subject_id
-
-5. **attendance** - Class attendance records
-   - Fields: attendance_id, student_id, course_id, class_date, is_present
-
-6. **marks** - Student assessment marks
-   - Fields: marks_id, student_id, course_id, assignment, mid_exam, final_exam
-
-7. **announcements** - System announcements
-   - Fields: announcement_id, title, content, posted_by, posted_date
-
-8. **subject_teacher** - Teacher subject assignments  
-9. **class_teacher** - Teacher class assignments
-
----
-
-## 🎯 User Workflows
-
-### ADMIN WORKFLOW:
-1. Login with credentials
-2. View dashboard with statistics
-3. Review pending registrations (admin-pending.jsp)
-4. Approve/reject student and teacher applications
-5. Manage courses (courses.jsp)
-6. Manage subjects (subjects.jsp)
-7. View system reports (reports.jsp)
-
-### STUDENT WORKFLOW:
-1. Register on registration.jsp (status = pending)
-2. Wait for admin approval
-3. Login after approval
-4. View personal dashboard
-5. View enrolled courses
-6. Check attendance percentage
-7. View marks and results
-8. Read announcements
-
-### TEACHER WORKFLOW:
-1. Register on registration.jsp (status = pending)
-2. Wait for admin approval  
-3. Login after approval
-4. View personal dashboard
-5. View assigned subjects
-6. View class students
-7. Mark attendance
-8. Enter student marks
-9. Post announcements
-
----
-
-## 🔧 Configuration
-
-### Database Connection (in JSP files):
-```jsp
-Class.forName("com.mysql.jdbc.Driver");
-Connection conn = DriverManager.getConnection(
-    "jdbc:mysql://localhost:3306/student_info_system", "root", "");
-```
-
-### MySQL Credentials:
-- **Host**: localhost
-- **Port**: 3306
-- **Database**: student_info_system
-- **Username**: root
-- **Password**: (empty for default XAMPP)
-
-### JSP Connection Pattern (used in all files):
-```jsp
-<%@ page import="java.sql.*" %>
-<%@ page import="java.security.MessageDigest" %>
-<%@ page import="java.util.Base64" %>
-<%
-    // Session check
-    if (session.getAttribute("userId") == null) {
-        response.sendRedirect("login.jsp");
-        return;
-    }
-    
-    // Database operations
-    Class.forName("com.mysql.jdbc.Driver");
-    Connection conn = DriverManager.getConnection(
-        "jdbc:mysql://localhost:3306/student_info_system", "root", "");
-    
-    PreparedStatement pstmt = conn.prepareStatement(sql);
-    // ... execute query
-    conn.close();
-%>
-```
-
----
-
-## 🎨 UI/UX Design
-
-### Color Scheme (Professional University Theme):
-- **Primary**: Navy Blue (#1e3a8a)
-- **Secondary**: Amber/Gold (#f59e0b)
-- **Accent**: Light Blue (#3b82f6)
-- **Success**: Green (#10b981)
-- **Warning**: Orange (#f97316)
-- **Danger**: Red (#ef4444)
-
-### Responsive Design:
-- ✅ Mobile-friendly (breakpoints: 768px, 480px)
-- ✅ CSS3 Grid & Flexbox (NO Bootstrap)
-- ✅ Professional dashboard layout
-- ✅ Accessible forms and tables
-
-### CSS Features:
-- ~1500 lines of professional CSS3
-- Smooth transitions and hover effects
-- Consistent typography
-- Clean card-based interface
-- Responsive tables and forms
 
 ---
 
 ## 🐛 Troubleshooting
 
-### Issue: "Connection Refused"
-**Solution**: 
-- Ensure MySQL is running (`mysql.exe` in XAMPP Control Panel)
-- Check connection string in JSP files
-- Verify database name: `student_info_system`
+### Issue: Foreign key constraint error on database setup
+**Solution**: Ensure InnoDB engine is used. Check MySQL version ≥ 5.7.
 
-### Issue: "No JSP files showing"
-**Solution**:
-- Files must be in: `C:\xampp\tomcat\webapps\MyApps\StudentInfoManageSystem\`
-- Restart Tomcat after adding files
-- Clear browser cache (Ctrl+Shift+Delete)
+### Issue: Students not seeing enrolled subjects
+**Solution**: Verify student_subject_enrollment table has entries for student and subject IDs match system data.
 
-### Issue: "Login not working"
-**Solution**:
-- Check MySQL user table for correct password hash
-- Ensure user status is 'approved' (not 'pending')
-- Try demo credentials first
-- Check browser console for JS errors
+### Issue: Teachers can't mark attendance
+**Solution**: Verify:
+1. Teacher is assigned to subject via subject_teacher table
+2. Students are enrolled in subject via student_subject_enrollment
+3. Date format is valid (YYYY-MM-DD)
 
-### Issue: "CSS not loading"
-**Solution**:
-- Ensure `style.css` is in same folder as JSP files
-- Check file path in HTML `<link>` tag: `<link rel="stylesheet" href="style.css">`
-- Clear browser cache
+### Issue: Marks not showing correct grades
+**Solution**: Verify mark totals are calculated correctly (theory + practical + assignment <= 300).
 
 ---
 
-## 📝 File Descriptions
+## 📋 Feature Checklist (v3.0)
 
-| File | Purpose | Type |
-|------|---------|------|
-| index.html | Landing page | HTML |
-| style.css | Main stylesheet | CSS |
-| registration.jsp | User registration | JSP |
-| login.jsp | Authentication | JSP |
-| *-dashboard.jsp | Role dashboards | JSP |
-| *-profile.jsp | User profiles | JSP |
-| *-*.jsp | Feature pages | JSP |
-| DB_SETUP.sql | Database schema | SQL |
-| README.md | Documentation | Markdown |
-
----
-
-## 📊 Sample Data Included
-
-- **1 Admin User**
-- **1 Sample Student** (enrolled in 3 courses)
-- **1 Sample Teacher** (assigned 3 subjects)
-- **4 Sample Courses** (CS101-CS301)
-- **4 Sample Subjects**
-- **Sample Attendance Records** (for student)
-- **Sample Marks** (for student)
-
-All accessible with demo credentials provided above.
+- ✅ **Courses vs Subjects**: Proper separation with degree programs as courses
+- ✅ **Course Management**: Admin can manage degree programs
+- ✅ **Subject Management**: Admin can manage subjects under courses
+- ✅ **Student Registration**: Students select degree program
+- ✅ **Subject Enrollment**: Students enroll in subjects by program/semester
+- ✅ **Teacher Assignment**: Teachers assigned to subjects (not courses)
+- ✅ **Attendance by Subject**: Teachers mark attendance for specific subjects
+- ✅ **Marks by Subject**: Teachers enter marks for subjects only
+- ✅ **Student Dashboard**: View enrolled subjects and their marks/attendance
+- ✅ **Teacher Dashboard**: View assigned subjects with student lists
+- ✅ **Admin Controls**: Full management of courses, subjects, assignments
+- ✅ **Reporting Views**: 5 comprehensive SQL views for analytics
+- ✅ **Session Management**: One-time login, persistent sessions
+- ✅ **Data Security**: SHA-256 password hashing, role-based access
+- ✅ **Demo Data**: Complete sample data with all 4 degree programs
 
 ---
 
-## ✨ Features Summary
+## 🗓️ Version History
 
-### ✅ Implemented:
-- User Registration & Approval System
-- Role-Based Access Control
-- Secure Authentication
-- Admin Dashboard & Management
-- Student Portal
-- Teacher Portal
-- Course Management
-- Subject Management
-- Attendance Tracking
-- Mark Entry & Display
-- Announcement System
-- System Reports
-- Responsive UI
-- Professional Styling
+### v3.0 (February 28, 2026) - Current
+- **Major Refactoring**: Implemented proper academic hierarchy
+- **Key Changes**:
+  - Courses now represent degree programs only
+  - Subjects table added for course modules
+  - subject_teacher table replaces course_teacher
+  - student_subject_enrollment replaces enrollments
+  - All attendance and marks now track by subject
+- **New Features**:
+  - Subject management interface
+  - Course curriculum views
+  - Enrollment summary reports
+  - Teacher assignment optimization
 
-### 🔒 Security:
-- Password Hashing (SHA-256)
-- Session Management
-- SQL Injection Prevention
-- Access Control
-- Status Verification
+### v2.0 (January 2026)
+- Session management fixes
+- Teacher dashboard enhancement
+- Enhanced admin controls
+- Comprehensive reporting views
 
----
-
-## 🤝 Support
-
-### Common Questions:
-
-**Q: Can I add more users?**
-A: Yes, via registration.jsp. Admin must approve before they can login.
-
-**Q: How do I backup the database?**
-A: Use phpMyAdmin → Export → Choose database → Download SQL file
-
-**Q: Can I modify the CSS?**
-A: Yes! Edit `style.css` directly. All styles are in one file.
-
-**Q: How do I add new features?**
-A: Create new JSP files in the same folder following the existing pattern.
+### v1.0 (December 2025)
+- Initial launch
+- Basic role-based authentication
+- Course and attendance management
 
 ---
 
-## 📄 License
+## 📞 Support & Contact
 
-This project is provided as-is for educational and commercial use.
+**Institution**: DY Patil School of Science and Technology, Pune
 
----
+**System Administrator**: admin@sims.edu
 
-## 🏁 Getting Help
-
-1. Check the database schema in `DB_SETUP.sql`
-2. Review existing JSP files for patterns
-3. Check browser console for errors (F12)
-4. Check phpMyAdmin for data verification
-5. Verify all files are in the correct folder
+**For Issues**:
+1. Check this README first
+2. Review database tables structure
+3. Verify all foreign keys and constraints
+4. Check application error logs
 
 ---
 
-## ✅ Setup Verification Checklist
+## ⚖️ License & Terms
 
-Before using the system:
-
-- [ ] MySQL server running
-- [ ] `student_info_system` database created
-- [ ] `DB_SETUP.sql` imported successfully
-- [ ] All 24 JSP files in StudentInfoManageSystem folder
-- [ ] `index.html` in folder
-- [ ] `style.css` in folder
-- [ ] Tomcat restarted after adding files
-- [ ] Can access `http://localhost:8080/MyApps/StudentInfoManageSystem/`
-- [ ] Can login with demo credentials
-- [ ] Database connection working
+This Student Information Management System is developed exclusively for DY Patil School of Science and Technology, Pune. All rights reserved.
 
 ---
 
-**SIMS Version**: 1.0  
-**Last Updated**: 2026  
-**Status**: Production Ready ✅
-
----
-
-## 📞 Contact
-
-- **Support Email**: support@sims.edu
-- **Admin Contact**: admin@sims.edu
-- **Phone**: +1-800-SIMS-123
-
----
-
-**Thank you for using SIMS - Student Information Management System!**
+**SIMS v3.0 | Production Ready | Fully Normalized Database | Enhanced Academic Hierarchy**

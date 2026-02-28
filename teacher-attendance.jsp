@@ -26,33 +26,33 @@
             Connection conn = DriverManager.getConnection(
                 "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
             
-            int courseId = Integer.parseInt(request.getParameter("course_id"));
+            int subjectId = Integer.parseInt(request.getParameter("subject_id"));
             String attendanceDate = request.getParameter("attendance_date");
             
-            // Get all student IDs for this course
-            String getStudentsSQL = "SELECT DISTINCT u.id FROM users u " +
-                                   "JOIN enrollments e ON u.id = e.student_id " +
-                                   "WHERE e.course_id = ? AND u.status = 'approved'";
+            // Get all student IDs for this subject
+            String getStudentsSQL = "SELECT DISTINCT u.user_id FROM users u " +
+                                   "JOIN student_subject_enrollment sse ON u.user_id = sse.student_id " +
+                                   "WHERE sse.subject_id = ? AND sse.status = 'active' AND u.status = 'approved'";
             PreparedStatement getStudentsStmt = conn.prepareStatement(getStudentsSQL);
-            getStudentsStmt.setInt(1, courseId);
+            getStudentsStmt.setInt(1, subjectId);
             ResultSet studentRS = getStudentsStmt.executeQuery();
             
             int recordsInserted = 0;
-            String insertSQL = "INSERT INTO attendance (student_id, course_id, teacher_id, class_date, is_present) " +
+            String insertSQL = "INSERT INTO attendance (student_id, subject_id, teacher_id, class_date, status) " +
                               "VALUES (?, ?, ?, ?, ?) " +
-                              "ON DUPLICATE KEY UPDATE is_present = VALUES(is_present)";
+                              "ON DUPLICATE KEY UPDATE status = VALUES(status)";
             
             while (studentRS.next()) {
-                int studentId = studentRS.getInt("id");
+                int studentId = studentRS.getInt("user_id");
                 String checkboxName = "present_" + studentId;
-                int isPresent = request.getParameter(checkboxName) != null ? 1 : 0;
+                String status = request.getParameter(checkboxName) != null ? "present" : "absent";
                 
                 PreparedStatement insertStmt = conn.prepareStatement(insertSQL);
                 insertStmt.setInt(1, studentId);
-                insertStmt.setInt(2, courseId);
+                insertStmt.setInt(2, subjectId);
                 insertStmt.setInt(3, teacherId);
                 insertStmt.setString(4, attendanceDate);
-                insertStmt.setInt(5, isPresent);
+                insertStmt.setString(5, status);
                 insertStmt.executeUpdate();
                 insertStmt.close();
                 recordsInserted++;
@@ -175,7 +175,7 @@
             </div>
             <div class="nav-links">
                 <a href="teacher-dashboard.jsp" class="nav-link">Dashboard</a>
-                <a href="teacher-courses.jsp" class="nav-link">My Courses</a>
+                <a href="teacher-subjects.jsp" class="nav-link">My Subjects</a>
                 <a href="teacher-attendance.jsp" class="nav-link active">Attendance</a>
                 <a href="teacher-marks.jsp" class="nav-link">Marks</a>
                 <a href="logout.jsp" class="nav-link">Logout</a>
@@ -197,38 +197,39 @@
 
         <!-- Course and Date Selection Form -->
         <div class="attendance-form-section">
-            <h3>Step 1: Select Course and Date</h3>
+            <h3>Step 1: Select Subject and Date</h3>
             <form id="attendanceForm" method="POST">
                 <div class="attendance-controls">
                     <div class="form-group">
-                        <label for="course_id">Select Course *</label>
-                        <select id="course_id" name="course_id" required onchange="loadStudents()">
-                            <option value="">-- Select Course --</option>
+                        <label for="subject_id">Select Subject (Course) *</label>
+                        <select id="subject_id" name="subject_id" required onchange="loadStudents()">
+                            <option value="">-- Select Subject --</option>
                             <%
                                 try {
                                     Class.forName("com.mysql.jdbc.Driver");
                                     Connection conn = DriverManager.getConnection(
                                         "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                                     
-                                    String sql = "SELECT DISTINCT c.course_id, c.course_code, c.course_name " +
-                                                "FROM courses c " +
-                                                "JOIN course_teacher ct ON c.course_id = ct.course_id " +
-                                                "WHERE ct.teacher_id = ? " +
-                                                "ORDER BY c.course_name ASC";
+                                    String sql = "SELECT DISTINCT s.subject_id, s.subject_code, s.subject_name, c.course_name, s.semester " +
+                                                "FROM subjects s " +
+                                                "JOIN courses c ON s.course_id = c.course_id " +
+                                                "JOIN subject_teacher st ON s.subject_id = st.subject_id " +
+                                                "WHERE st.teacher_id = ? " +
+                                                "ORDER BY c.course_name, s.semester, s.subject_code ASC";
                                     PreparedStatement stmt = conn.prepareStatement(sql);
                                     stmt.setInt(1, teacherId);
                                     ResultSet rs = stmt.executeQuery();
                                     
                                     while (rs.next()) {
                             %>
-                            <option value="<%= rs.getInt("course_id") %>">
-                                <%= rs.getString("course_code") %> - <%= rs.getString("course_name") %>
+                            <option value="<%= rs.getInt("subject_id") %>">
+                                <%= rs.getString("subject_code") %> - <%= rs.getString("subject_name") %> (<%= rs.getString("course_name") %>, Sem <%= rs.getInt("semester") %>)
                             </option>
                             <%
                                     }
                                     conn.close();
                                 } catch (Exception e) {
-                                    out.println("<option>Error loading courses</option>");
+                                    out.println("<option>Error loading subjects</option>");
                                 }
                             %>
                         </select>
@@ -241,7 +242,7 @@
                 </div>
             </form>
             <p style="color: #7f8c8d; font-size: 0.9rem; margin-top: 1rem;">
-                ℹ️ After selecting a course and date, click "Load Students" to display the student list below.
+                ℹ️ After selecting a subject and date, click "Load Students" to display the student list below.
             </p>
         </div>
 
@@ -298,11 +299,11 @@
 
     <script>
         function loadStudents() {
-            const courseId = document.getElementById('course_id').value;
+            const subjectId = document.getElementById('subject_id').value;
             const attendanceDate = document.getElementById('attendance_date').value;
             
-            if (!courseId) {
-                alert('Please select a course first');
+            if (!subjectId) {
+                alert('Please select a subject first');
                 return;
             }
             
@@ -312,7 +313,7 @@
             }
             
             // Make AJAX call to get students
-            fetch('get-course-students.jsp?course_id=' + courseId)
+            fetch('get-subject-students.jsp?subject_id=' + subjectId)
                 .then(response => response.json())
                 .then(data => {
                     populateStudentList(data);
@@ -328,8 +329,8 @@
             tbody.innerHTML = '';
             
             if (students.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 2rem;">No students enrolled in this course</td></tr>';
-                document.getElementById('studentCountText').textContent = '0 students in this course';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 2rem;">No students enrolled in this subject</td></tr>';
+                document.getElementById('studentCountText').textContent = '0 students in this subject';
                 return;
             }
             
@@ -340,13 +341,13 @@
                     <td>${student.full_name}</td>
                     <td>${student.email}</td>
                     <td class="checkbox-col">
-                        <input type="checkbox" name="present_${student.id}" value="1" checked>
+                        <input type="checkbox" name="present_${student.student_id}" value="1" checked>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
             
-            document.getElementById('studentCountText').textContent = `${students.length} student(s) in this course`;
+            document.getElementById('studentCountText').textContent = `${students.length} student(s) in this subject`;
         }
         
         function selectAllStudents() {
@@ -360,11 +361,11 @@
         }
         
         function markAttendance() {
-            const courseId = document.getElementById('course_id').value;
+            const subjectId = document.getElementById('subject_id').value;
             const attendanceDate = document.getElementById('attendance_date').value;
             
-            if (!courseId || !attendanceDate) {
-                alert('Please select both course and date');
+            if (!subjectId || !attendanceDate) {
+                alert('Please select both subject and date');
                 return;
             }
             

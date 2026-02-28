@@ -258,22 +258,26 @@
 
                     <div class="form-row">
                         <div class="form-group" style="flex: 1;">
-                            <label for="courseId">Course</label>
-                            <select id="courseId" name="courseId">
-                                <option value="">-- Select Course --</option>
-                                <option value="1">Introduction to Programming</option>
-                                <option value="2">Data Structures</option>
-                                <option value="3">Advanced Web Development</option>
-                                <option value="4">Database Management Systems</option>
+                            <label for="courseId">Degree Program (Course) *</label>
+                            <select id="courseId" name="courseId" required>
+                                <option value="">-- Select Degree Program --</option>
+                                <option value="1">BTech - Bachelor of Technology (4 years)</option>
+                                <option value="2">BSc - Bachelor of Science (3 years)</option>
+                                <option value="3">BCA - Bachelor of Computer Applications (3 years)</option>
+                                <option value="4">MCA - Master of Computer Applications (2 years)</option>
                             </select>
                         </div>
                         <div class="form-group" style="flex: 1;">
-                            <label for="semester">Semester</label>
+                            <label for="semester">Current Semester</label>
                             <select id="semester" name="semester">
-                                <option value="">-- Select --</option>                                <option value="1">Semester 1</option>
+                                <option value="">-- Select --</option>                                <option value="1" selected>Semester 1</option>
                                 <option value="2">Semester 2</option>
                                 <option value="3">Semester 3</option>
                                 <option value="4">Semester 4</option>
+                                <option value="5">Semester 5</option>
+                                <option value="6">Semester 6</option>
+                                <option value="7">Semester 7</option>
+                                <option value="8">Semester 8</option>
                             </select>
                         </div>
                     </div>

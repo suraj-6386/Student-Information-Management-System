@@ -26,29 +26,47 @@
                 "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
             
             int studentId = Integer.parseInt(request.getParameter("student_id"));
-            int courseId = Integer.parseInt(request.getParameter("course_id"));
-            int assignment = Integer.parseInt(request.getParameter("assignment"));
-            int midExam = Integer.parseInt(request.getParameter("mid_exam"));
-            int finalExam = Integer.parseInt(request.getParameter("final_exam"));
+            int subjectId = Integer.parseInt(request.getParameter("subject_id"));
+            int theoryMarks = Integer.parseInt(request.getParameter("theory_marks"));
+            int practicalMarks = Integer.parseInt(request.getParameter("practical_marks"));
+            int assignmentMarks = Integer.parseInt(request.getParameter("assignment_marks"));
             
-            String sql = "INSERT INTO marks (student_id, course_id, teacher_id, assignment, mid_exam, final_exam) " +
-                        "VALUES (?, ?, ?, ?, ?, ?) " +
-                        "ON DUPLICATE KEY UPDATE assignment = ?, mid_exam = ?, final_exam = ?, teacher_id = ?";
+            // Validate marks
+            if (theoryMarks < 0 || theoryMarks > 100 || practicalMarks < 0 || practicalMarks > 100 || 
+                assignmentMarks < 0 || assignmentMarks > 100) {
+                throw new Exception("All marks must be between 0 and 100");
+            }
+            
+            int totalMarks = theoryMarks + practicalMarks + assignmentMarks;
+            String grade;
+            if (totalMarks >= 270) grade = "A";
+            else if (totalMarks >= 240) grade = "B";
+            else if (totalMarks >= 180) grade = "C";
+            else if (totalMarks >= 150) grade = "D";
+            else grade = "F";
+            
+            String sql = "INSERT INTO marks (student_id, subject_id, teacher_id, theory_marks, practical_marks, assignment_marks, total_marks, grade, evaluated_at) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW()) " +
+                        "ON DUPLICATE KEY UPDATE theory_marks = ?, practical_marks = ?, assignment_marks = ?, total_marks = ?, grade = ?, updated_at = NOW(), teacher_id = ?";
             
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, studentId);
-            stmt.setInt(2, courseId);
+            stmt.setInt(2, subjectId);
             stmt.setInt(3, teacherId);
-            stmt.setInt(4, assignment);
-            stmt.setInt(5, midExam);
-            stmt.setInt(6, finalExam);
-            stmt.setInt(7, assignment);
-            stmt.setInt(8, midExam);
-            stmt.setInt(9, finalExam);
-            stmt.setInt(10, teacherId);
+            stmt.setInt(4, theoryMarks);
+            stmt.setInt(5, practicalMarks);
+            stmt.setInt(6, assignmentMarks);
+            stmt.setInt(7, totalMarks);
+            stmt.setString(8, grade);
+            stmt.setInt(9, theoryMarks);
+            stmt.setInt(10, practicalMarks);
+            stmt.setInt(11, assignmentMarks);
+            stmt.setInt(12, totalMarks);
+            stmt.setString(13, grade);
+            stmt.setInt(14, teacherId);
             
             stmt.executeUpdate();
-            message = "✓ Marks saved successfully!";
+            message = "✓ Marks saved successfully! (Grade: " + grade + ", Total: " + totalMarks + "/300)";
             messageType = "success";
             
             stmt.close();
