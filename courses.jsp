@@ -116,7 +116,6 @@
             <div class="alert alert-<%= messageType %>"><%= message %></div>
         <% } %>
         
-        <!-- Add Course Form -->
         <div class="form-section">
             <h3>Add New Course</h3>
             <form method="POST">
@@ -143,7 +142,6 @@
             </form>
         </div>
         
-        <!-- Add Subject Form -->
         <div class="form-section">
             <h3>Add New Subject</h3>
             <form method="POST">
@@ -208,7 +206,6 @@
             </form>
         </div>
         
-        <!-- List Courses -->
         <h3>All Courses</h3>
         <div class="table-container">
             <table>
@@ -242,7 +239,8 @@
     </div>
 
     <footer class="footer">
-        <div class="footer-bottom"><p>&copy; 2026 SIMS. All rights reserved.</p></div>
+        <div class="footer-bottom"><p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+            <p>&copy; SURAJ GUPTA | MCA</p></div>
     </footer>
 </body>
 </html>

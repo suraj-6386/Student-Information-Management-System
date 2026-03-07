@@ -96,7 +96,6 @@
             </div>
         </div>
 
-        <!-- Quick Actions -->
         <div class="quick-actions-section">
             <h3>Quick Access</h3>
             <div class="quick-actions-grid">
@@ -111,7 +110,8 @@
 
     <footer class="footer">
         <div class="footer-bottom">
-            <p>&copy; 2026 SIMS — Student Information Management System. All rights reserved.</p>
+            <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+            <p>&copy; SURAJ GUPTA | MCA</p>
         </div>
     </footer>
 

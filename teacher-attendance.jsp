@@ -18,7 +18,6 @@
     String message = "";
     String messageType = "";
     
-    // Handle attendance submission
     if ("POST".equalsIgnoreCase(request.getMethod())) {
         try {
             Class.forName("com.mysql.jdbc.Driver");
@@ -28,7 +27,6 @@
             int subjectId = Integer.parseInt(request.getParameter("subject_id"));
             String attendanceDate = request.getParameter("attendance_date");
             
-            // Get all student IDs for this subject
             String getStudentsSQL = "SELECT DISTINCT st.student_id FROM student st " +
                                    "JOIN subject_enrollment se ON st.student_id = se.student_id " +
                                    "WHERE se.subject_id = ? AND se.status = 'active' AND st.status = 'approved'";
@@ -169,7 +167,6 @@
             </div>
         <% } %>
 
-        <!-- Course and Date Selection Form -->
         <div class="attendance-form-section">
             <h3>Select Subject and Date</h3>
             <form id="attendanceForm" method="POST">
@@ -225,12 +222,12 @@
 
     <footer class="footer">
         <div class="footer-bottom">
-            <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+       <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+            <p>&copy; SURAJ GUPTA | MCA</p>
         </div>
     </footer>
 
     <script>
-        // Set default date to today
         document.getElementById('attendance_date').valueAsDate = new Date();
     </script>
 </body>

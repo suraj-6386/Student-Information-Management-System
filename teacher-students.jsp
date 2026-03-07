@@ -8,7 +8,6 @@
     }
     int teacherId = (Integer) session.getAttribute("userId");
     
-    // Get subject filter if provided
     String subjectFilter = request.getParameter("subject_id");
 %>
 
@@ -122,7 +121,8 @@
 
     <footer class="footer">
         <div class="footer-bottom">
-            <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+           <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+            <p>&copy; SURAJ GUPTA | MCA</p>
         </div>
     </footer>
 </body>

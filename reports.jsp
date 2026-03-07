@@ -37,31 +37,26 @@
     <div class="dashboard-container">
         <h2>System Reports</h2>
 
-        <!-- Summary Statistics -->
         <div class="dashboard-grid">
             <%
                 try {
                     Class.forName("com.mysql.jdbc.Driver");
                     Connection conn = DriverManager.getConnection(
                         "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
-                    
-                    // Total Students
+                  
                     Statement stmt = conn.createStatement();
                     ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as count FROM student WHERE status = 'approved'");
                     int totalStudents = 0;
                     if (rs.next()) totalStudents = rs.getInt("count");
-                    
-                    // Total Teachers
+                  
                     rs = stmt.executeQuery("SELECT COUNT(*) as count FROM teacher WHERE status = 'approved'");
                     int totalTeachers = 0;
                     if (rs.next()) totalTeachers = rs.getInt("count");
                     
-                    // Total Courses
                     rs = stmt.executeQuery("SELECT COUNT(*) as count FROM courses");
                     int totalCourses = 0;
                     if (rs.next()) totalCourses = rs.getInt("count");
-                    
-                    // Total Enrollments (subjects)
+                   
                     rs = stmt.executeQuery("SELECT COUNT(DISTINCT student_id) as count FROM subject_enrollment");
                     int totalEnrollments = 0;
                     if (rs.next()) totalEnrollments = rs.getInt("count");
@@ -98,7 +93,6 @@
             %>
         </div>
 
-        <!-- Detailed Reports -->
         <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 2rem;">
             <h3>Enrollment by Semester</h3>
             <div class="table-container">
@@ -153,6 +147,7 @@
     <footer class="footer">
         <div class="footer-bottom">
             <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+            <p>&copy; SURAJ GUPTA | MCA</p>
         </div>
     </footer>
 </body>

@@ -198,7 +198,7 @@
                 Connection conn = DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                 
-                // Get total subjects
+        
                 String countSQL = "SELECT COUNT(*) as total FROM subjects WHERE teacher_id = ?";
                 PreparedStatement countStmt = conn.prepareStatement(countSQL);
                 countStmt.setInt(1, teacherId);
@@ -210,7 +210,7 @@
                 countRS.close();
                 countStmt.close();
                 
-                // Get total students
+        
                 String studentCountSQL = "SELECT COUNT(DISTINCT se.student_id) as total " +
                                         "FROM subject_enrollment se " +
                                         "JOIN subjects s ON se.subject_id = s.subject_id " +
@@ -225,8 +225,7 @@
                 studentRS.close();
                 studentStmt.close();
         %>
-        
-        <!-- Statistics -->
+
         <div class="stats-container">
             <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                 <h3>Total Subjects</h3>
@@ -249,8 +248,7 @@
         <%
                 } else {
         %>
-        
-        <!-- Subjects List -->
+  
         <div class="courses-grid">
         <%
                     String sql = "SELECT s.subject_id, s.subject_code, s.subject_name, s.credits, s.semester, " +
@@ -338,7 +336,8 @@
 
     <footer class="footer">
         <div class="footer-bottom">
-            <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+           <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+            <p>&copy; SURAJ GUPTA | MCA</p>
         </div>
     </footer>
 </body>

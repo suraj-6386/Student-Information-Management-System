@@ -2,7 +2,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <%
-    // Session check
     if (session.getAttribute("userId") == null || !"admin".equals(session.getAttribute("userType"))) {
         response.sendRedirect("login.jsp");
         return;
@@ -20,7 +19,6 @@
             Connection conn = DriverManager.getConnection(
                 "jdbc:mysql://localhost:3306/student_info_system?useSSL=false&serverTimezone=UTC", "root", "15056324");
             
-            // Trim parameters
             action = action.trim();
             userType = userType.trim();
             userId = userId.trim();
@@ -47,7 +45,6 @@
                 try {
                     int rows = stmt.executeUpdate();
                     if (rows > 0) {
-                        // If student was approved, auto-enroll them in their course subjects
                         if ("approve".equals(action) && "student".equals(userType)) {
                             try {
                                 String enrollSQL = "INSERT INTO subject_enrollment (student_id, subject_id, status) " +
@@ -64,7 +61,7 @@
                                 enrollStmt.executeUpdate();
                                 enrollStmt.close();
                             } catch (Exception e) {
-                                // Enrollment error - log but don't fail the approval
+                                e.printStackTrace();
                             }
                         }
                         
@@ -146,7 +143,6 @@
                             Connection conn = DriverManager.getConnection(
                                 "jdbc:mysql://localhost:3306/student_info_system?useSSL=false&serverTimezone=UTC", "root", "15056324");
                             
-                            // Get pending students
                             String sql = "SELECT student_id as id, full_name, email, phone, 'student' as user_type, status FROM student WHERE status = 'pending'";
                             Statement stmt = conn.createStatement();
                             ResultSet rs = stmt.executeQuery(sql);
@@ -178,7 +174,6 @@
                     <%
                             }
                             
-                            // Get pending teachers
                             rs = stmt.executeQuery("SELECT teacher_id as id, full_name, email, phone, 'teacher' as user_type, status FROM teacher WHERE status = 'pending'");
                             while (rs.next()) {
                                 hasPending = true;
@@ -229,6 +224,7 @@
     <footer class="footer">
         <div class="footer-bottom">
             <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+            <p>&copy; SURAJ GUPTA | MCA</p>
         </div>
     </footer>
 </body>

@@ -16,7 +16,6 @@
     String message = "";
     String messageType = "";
     
-    // Handle approve/reject actions
     if ("POST".equalsIgnoreCase(request.getMethod())) {
         String action = request.getParameter("action");
         String userIdStr = request.getParameter("userId");
@@ -107,7 +106,6 @@
                             Class.forName("com.mysql.jdbc.Driver");
                             Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/student_info_system?useSSL=false&serverTimezone=UTC", "root", "15056324");
                             
-                            // Get pending students
                             PreparedStatement ps = conn.prepareStatement("SELECT student_id as id, full_name, email, 'student' as user_type, status FROM student WHERE status = 'pending'");
                             ResultSet rs = ps.executeQuery();
                             
@@ -131,7 +129,6 @@
                     <% }
                             rs.close();
                             
-                            // Get pending teachers
                             ps = conn.prepareStatement("SELECT teacher_id as id, full_name, email, 'teacher' as user_type, status FROM teacher WHERE status = 'pending'");
                             rs = ps.executeQuery();
                             
@@ -204,7 +201,8 @@
     </div>
 
     <footer class="footer">
-        <div class="footer-bottom"><p>&copy; 2026 SIMS. All rights reserved.</p></div>
+        <div class="footer-bottom"><p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+            <p>&copy; SURAJ GUPTA | MCA</p></div>
     </footer>
 </body>
 </html>

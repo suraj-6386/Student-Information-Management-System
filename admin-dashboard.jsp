@@ -87,7 +87,6 @@
             <p>Welcome back, <strong><%= session.getAttribute("userName") %></strong> &nbsp;·&nbsp; Administrator</p>
         </div>
 
-        <!-- Primary Stats -->
         <div class="dashboard-grid">
             <div class="dashboard-card card-danger red">
                 <h3>Pending Approvals</h3>
@@ -118,7 +117,6 @@
             </div>
         </div>
 
-        <!-- User Breakdown -->
         <h3 class="section-title">User Breakdown</h3>
         <div class="dashboard-grid">
             <div class="dashboard-card card-sage">
@@ -143,7 +141,6 @@
             </div>
         </div>
 
-        <!-- Quick Actions -->
         <div class="quick-actions-section">
             <h3>Quick Actions</h3>
             <div class="quick-actions-grid">
@@ -154,7 +151,6 @@
             </div>
         </div>
 
-        <!-- System Info -->
         <div class="system-info-box">
             <h3>System Information</h3>
             <div class="system-info-grid">
@@ -169,7 +165,8 @@
 
     <footer class="footer">
         <div class="footer-bottom">
-            <p>&copy; 2026 SIMS — Student Information Management System. All rights reserved.</p>
+            <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+            <p>&copy; SURAJ GUPTA | MCA</p>
         </div>
     </footer>
 

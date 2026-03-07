@@ -57,7 +57,6 @@
             </div>
         </div>
 
-        <!-- Quick Stats -->
         <div class="dashboard-grid">
             <div class="dashboard-card card-sage">
                 <h3>Assigned Subjects</h3>
@@ -105,7 +104,6 @@
             </div>
         </div>
 
-        <!-- Assigned Subjects -->
         <h3 class="section-title">My Assigned Subjects</h3>
         <div class="courses-grid">
         <%
@@ -149,7 +147,6 @@
         <% } %>
         </div>
 
-        <!-- Students Table -->
         <h3 class="section-title">My Students</h3>
         <%
             try {
@@ -205,7 +202,8 @@
 
     <footer class="footer">
         <div class="footer-bottom">
-            <p>&copy; 2026 SIMS — Student Information Management System. All rights reserved.</p>
+            <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+            <p>&copy; SURAJ GUPTA | MCA</p>
         </div>
     </footer>
 

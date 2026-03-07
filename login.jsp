@@ -132,7 +132,6 @@
     <div class="login-page-wrap">
         <div class="login-container">
 
-            <!-- Form Panel -->
             <div class="login-card">
                 <div class="login-header">
                     <h2>Welcome back.</h2>
@@ -164,7 +163,6 @@
                 </p>
             </div>
 
-            <!-- Info Panel -->
             <div class="login-info">
                 <p class="login-info-heading">Three portals. One platform.</p>
                 <p class="login-info-sub">Use the same sign-in form — SIMS automatically routes you to the correct dashboard based on your credentials.</p>
@@ -188,7 +186,8 @@
 
     <footer class="footer">
         <div class="footer-bottom">
-            <p>&copy; 2026 DY Patil School of Science and Technology, Pune. All rights reserved.</p>
+           <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+            <p>&copy; SURAJ GUPTA | MCA</p>
         </div>
     </footer>
 

@@ -4,7 +4,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <%!
-    // Function to generate unique user ID
     String generateStudentUserId(Connection conn) throws SQLException {
         String userId = "";
         boolean unique = false;
@@ -51,20 +50,17 @@
         String confirmPassword = request.getParameter("confirmPassword");
         String address = request.getParameter("address");
         
-        // Student-specific fields
         String rollNumber = request.getParameter("rollNumber");
         String courseId = request.getParameter("courseId");
         String semester = request.getParameter("semester");
         String parentName = request.getParameter("parentName");
         String parentContact = request.getParameter("parentContact");
         
-        // Teacher-specific fields
         String employeeId = request.getParameter("employeeId");
         String department = request.getParameter("department");
         String qualification = request.getParameter("qualification");
         String experience = request.getParameter("experience");
         
-        // Validation
         if (fullName == null || fullName.trim().isEmpty() || email == null || email.trim().isEmpty()) {
             message = "Full name and email are required!";
             messageType = "danger";
@@ -89,7 +85,6 @@
                 Connection conn = DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                 
-                // Check if email already exists in student or teacher tables
                 String checkSql = "SELECT student_id FROM student WHERE email = ? UNION ALL SELECT teacher_id FROM teacher WHERE email = ?";
                 PreparedStatement checkStmt = conn.prepareStatement(checkSql);
                 checkStmt.setString(1, email);
@@ -103,13 +98,11 @@
                     rs.close();
                     checkStmt.close();
                     
-                    // Hash password
                     MessageDigest md = MessageDigest.getInstance("SHA-256");
                     byte[] hashedPassword = md.digest(password.getBytes("UTF-8"));
                     String hashedPasswordStr = Base64.getEncoder().encodeToString(hashedPassword);
                     
                     if ("student".equals(userType)) {
-                        // Insert into student table
                         String studentUserId = generateStudentUserId(conn);
                         String insertSql = "INSERT INTO student (user_id, full_name, email, phone, password_hash, status, address, roll_number, course_id, semester, parent_name, parent_contact) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?)";
                         PreparedStatement insertStmt = conn.prepareStatement(insertSql);
@@ -135,7 +128,6 @@
                         insertStmt.close();
                         
                     } else if ("teacher".equals(userType)) {
-                        // Insert into teacher table
                         String teacherUserId = generateTeacherUserId(conn);
                         String insertSql = "INSERT INTO teacher (user_id, full_name, email, phone, password_hash, status, address, employee_id, department, qualification, experience) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)";
                         PreparedStatement insertStmt = conn.prepareStatement(insertSql);
@@ -266,7 +258,6 @@
                     <input type="password" id="confirmPassword" name="confirmPassword" required>
                 </div>
 
-                <!-- Student Fields -->
                 <div id="studentFields" style="display: none;">
                     <div class="form-group">
                         <label for="rollNumber">Roll Number *</label>
@@ -322,7 +313,6 @@
                     </div>
                 </div>
 
-                <!-- Teacher Fields -->
                 <div id="teacherFields" style="display: none;">
                     <div class="form-group">
                         <label for="employeeId">Employee ID *</label>
@@ -356,7 +346,8 @@
 
     <footer class="footer">
         <div class="footer-bottom">
-            <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+           <p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+            <p>&copy; SURAJ GUPTA | MCA</p>
         </div>
     </footer>
 </body>

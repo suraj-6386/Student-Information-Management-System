@@ -24,7 +24,6 @@
                 Class.forName("com.mysql.jdbc.Driver");
                 Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
                 
-                // Get teacher_id from session
                 int posterId = userId;
                 
                 PreparedStatement ps = conn.prepareStatement("INSERT INTO announcements (posted_by, title, content, visibility_level) VALUES (?, ?, ?, ?)");
@@ -156,7 +155,8 @@
     </div>
 
     <footer class="footer">
-        <div class="footer-bottom"><p>&copy; 2026 SIMS. All rights reserved.</p></div>
+        <div class="footer-bottom"><p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+            <p>&copy; SURAJ GUPTA | MCA</p></div>
     </footer>
 </body>
 </html>

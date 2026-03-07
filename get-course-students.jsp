@@ -4,7 +4,6 @@
 <%
     response.setHeader("Content-Type", "application/json");
     
-    // Get course_id from request parameter
     String courseIdStr = request.getParameter("course_id");
     
     if (courseIdStr == null || courseIdStr.isEmpty()) {
@@ -19,7 +18,6 @@
         Connection conn = DriverManager.getConnection(
             "jdbc:mysql://localhost:3306/student_info_system", "root", "15056324");
         
-        // Query: Get all students enrolled in subjects of the course, sorted by roll number
         String sql = "SELECT DISTINCT s.student_id, s.full_name, s.email, s.roll_number " +
                     "FROM student s " +
                     "JOIN subject_enrollment e ON s.student_id = e.student_id " +

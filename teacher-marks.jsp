@@ -207,7 +207,8 @@
     </div>
 
     <footer class="footer">
-        <div class="footer-bottom"><p>&copy; 2026 SIMS. All rights reserved.</p></div>
+        <div class="footer-bottom"><p>&copy; 2026 SIMS - Student Information Management System. All rights reserved.</p>
+            <p>&copy; SURAJ GUPTA | MCA</p></div>
     </footer>
 
     <script>
