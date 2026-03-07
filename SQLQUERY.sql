@@ -213,3 +213,11 @@ SELECT * FROM student;
 
 SELECT * FROM teacher;
 
+SELECT * FROM attendance;
+
+ALTER TABLE attendance 
+DROP COLUMN status;
+
+ALTER TABLE attendance 
+ADD COLUMN status ENUM('Present', 'Absent') DEFAULT 'Absent';
+

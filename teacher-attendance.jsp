@@ -173,7 +173,7 @@
                 <div class="attendance-controls">
                     <div class="form-group">
                         <label for="subject_id">Select Subject *</label>
-                        <select id="subject_id" name="subject_id" required>
+                        <select id="subject_id" name="subject_id" required onchange="loadStudents()">
                             <option value="">-- Select Subject --</option>
                             <%
                                 try {
@@ -211,7 +211,27 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Submit Attendance</button>
+                <!-- Student Listing Section -->
+                <div id="studentListContainer" style="display:none; margin-top: 2rem;">
+                    <h3>👥 Mark Attendance for Students</h3>
+                    <table class="student-list-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Roll Number</th>
+                                <th>Student Name</th>
+                                <th class="checkbox-col">Present</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTableBody">
+                            <tr><td colspan="4" style="text-align:center;">Select a subject to load students</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    <button type="submit" class="btn btn-primary" id="submitBtn" disabled>Submit Attendance</button>
+                </div>
             </form>
         </div>
 
@@ -229,6 +249,32 @@
 
     <script>
         document.getElementById('attendance_date').valueAsDate = new Date();
+        
+        function loadStudents() {
+            const subjectId = document.getElementById('subject_id').value;
+            const studentListContainer = document.getElementById('studentListContainer');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (!subjectId) {
+                studentListContainer.style.display = 'none';
+                submitBtn.disabled = true;
+                return;
+            }
+            
+            // Fetch students for the selected subject
+            fetch('get-subject-students.jsp?subject_id=' + encodeURIComponent(subjectId))
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('studentTableBody').innerHTML = html;
+                    studentListContainer.style.display = 'block';
+                    submitBtn.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Error loading students:', error);
+                    document.getElementById('studentTableBody').innerHTML = '<tr><td colspan="4" style="text-align:center;color:red;">Error loading students</td></tr>';
+                    submitBtn.disabled = true;
+                });
+        }
     </script>
 </body>
 </html>
